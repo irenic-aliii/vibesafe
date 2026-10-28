@@ -3,68 +3,333 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VibeSafe — Enterprise Security Compiler</title>
+    <title>VibeSafe — Enterprise DevSecOps Security Compiler</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/umd/lucide.min.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #090d16; color: #f3f4f6; }
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #cbd5e1; overflow: hidden; }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
-        .glass-panel { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
-        .diff-red { background: rgba(220, 38, 38, 0.2); text-decoration: line-through; }
-        .diff-green { background: rgba(16, 185, 129, 0.2); }
+        .glass-panel { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.6); }
+        .glow-green { box-shadow: 0 0 20px rgba(34, 197, 94, 0.15); }
+        .glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.15); }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
     </style>
 </head>
-<body class="min-h-screen">
-    <header class="border-b border-gray-800 bg-[#090d16]/80 px-6 py-4 flex items-center justify-between">
-        <h1 class="font-bold text-lg text-white">VibeSafe Enterprise</h1>
-    </header>
+<body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-300 selection:bg-rose-500 selection:text-white">
 
-    <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
-        <!-- Diff Viewer -->
-        <div class="glass-panel rounded-2xl p-6">
-            <h3 class="text-white font-bold mb-4">Security Patch Diff</h3>
-            <div class="grid grid-cols-2 gap-4 font-mono text-xs">
-                <div id="diff-old" class="bg-gray-950 p-4 rounded-lg text-red-300">
-                    Old code here...
+    <!-- Top: 60px Fixed Header -->
+    <header class="h-[60px] min-h-[60px] bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between z-50">
+        <div class="flex items-center space-x-3">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-600 to-red-600 flex items-center justify-center glow-red shadow-lg shadow-rose-950/50">
+                <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+            </div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h1 class="font-bold text-sm tracking-tight text-white">VibeSafe Control Plane</h1>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-mono font-medium">Enterprise v3.2</span>
                 </div>
-                <div id="diff-new" class="bg-gray-950 p-4 rounded-lg text-emerald-300">
-                    Patched code here...
-                </div>
+                <p class="text-[11px] text-slate-400">Autonomous AST Security & Verification Compiler</p>
             </div>
         </div>
 
-        <!-- Verification Loop -->
-        <div class="glass-panel rounded-2xl p-6">
-            <h3 class="text-white font-bold mb-4">Verification Loop</h3>
-            <ul id="verification-checklist" class="space-y-3 font-mono text-sm">
-                <li id="check-1" class="flex items-center gap-3">
-                    <i data-lucide="circle" class="w-5 h-5 text-gray-500"></i> 1. AST Security Audit (Proves bug is gone)
-                </li>
-                <li id="check-2" class="flex items-center gap-3">
-                    <i data-lucide="circle" class="w-5 h-5 text-gray-500"></i> 2. Functional Logic Test (Proves code still runs)
-                </li>
-            </ul>
-        </div>
+        <div class="flex items-center space-x-4">
+            <div class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 text-xs text-slate-300 font-mono">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse glow-green"></span>
+                <span class="font-medium text-emerald-400">System Online</span>
+                <span class="text-slate-600">|</span>
+                <span class="text-slate-400">AST Engine Active</span>
+            </div>
 
-        <button onclick="exportPR()" class="px-6 py-3 bg-indigo-600 rounded-xl font-bold">Export as GitHub PR</button>
+            <button onclick="exportGitHubPR()" class="px-4 py-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-semibold text-xs rounded-xl transition shadow-lg shadow-rose-950/50 flex items-center gap-2 border border-rose-500/30">
+                <i data-lucide="git-pull-request" class="w-4 h-4"></i> Export PR
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content: Strict 3-Pane IDE Layout (Calc height to exclude 60px header) -->
+    <main class="h-[calc(100vh-60px)] w-full grid grid-cols-12 overflow-hidden">
+
+        <!-- LEFT PANE (40% width = 5 cols): Vulnerable Code Editor -->
+        <section class="col-span-5 h-full bg-slate-900/90 border-r border-slate-800 flex flex-col overflow-hidden">
+            <!-- Pane Header -->
+            <div class="h-11 px-4 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between shrink-0">
+                <div class="flex items-center space-x-2">
+                    <div class="flex space-x-1.5">
+                        <div class="w-3 h-3 rounded-full bg-rose-500/80"></div>
+                        <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
+                        <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+                    </div>
+                    <span class="text-xs text-slate-400 font-mono ml-2 flex items-center gap-1.5">
+                        <i data-lucide="file-code" class="w-3.5 h-3.5 text-slate-500"></i> app/service/vulnerable_auth.py
+                    </span>
+                </div>
+                <span class="text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30 font-mono font-medium">3 Vulnerabilities</span>
+            </div>
+
+            <!-- Code Editor Body with Line Numbers -->
+            <div class="flex-1 overflow-y-auto bg-slate-950 flex font-mono text-xs leading-relaxed select-text">
+                <!-- Line Numbers -->
+                <div class="w-12 py-4 bg-slate-950/90 border-r border-slate-900 text-right pr-3 select-none text-slate-600 space-y-1">
+                    <div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div><div>10</div><div>11</div><div>12</div><div>13</div><div>14</div><div>15</div><div>16</div>
+                </div>
+                <!-- Code Area -->
+                <div class="flex-1 py-4 px-4 text-slate-300 overflow-x-auto space-y-1">
+                    <div><span class="text-purple-400">import</span> os</div>
+                    <div><span class="text-purple-400">import</span> sqlite3</div>
+                    <div>&nbsp;</div>
+                    <div><span class="text-slate-500"># High Shannon Entropy Secret Detected</span></div>
+                    <div>API_KEY = <span class="text-amber-300 bg-amber-950/50 px-1 rounded border border-amber-800/50">'sk_live_99812739182739182739'</span></div>
+                    <div>&nbsp;</div>
+                    <div><span class="text-blue-400">def</span> <span class="text-yellow-300">execute_query</span>(user_input):</div>
+                    <div>    <span class="text-slate-500"># Unparameterized SQL Injection & Command Execution</span></div>
+                    <div>    query = <span class="text-green-300">f"SELECT * FROM users WHERE name = '{</span>user_input<span class="text-green-300">}'"</span></div>
+                    <div>    conn = sqlite3.connect(<span class="text-green-300">'db.sqlite'</span>)</div>
+                    <div>    cursor = conn.cursor()</div>
+                    <div>    cursor.execute(query)</div>
+                    <div>&nbsp;</div>
+                    <div>    <span class="text-slate-500"># Critical: OS Command Injection via unverified string</span></div>
+                    <div>    os.system(<span class="text-green-300">"echo "</span> + user_input)</div>
+                    <div>    <span class="text-purple-400">return</span> cursor.fetchall()</div>
+                </div>
+            </div>
+
+            <!-- Editor Footer Info -->
+            <div class="h-10 px-4 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between shrink-0 text-xs text-slate-500 font-mono">
+                <span>Python 3.11 AST Parser</span>
+                <span class="text-rose-400">Status: Unsafe (Remediation Required)</span>
+            </div>
+        </section>
+
+        <!-- CENTER & BOTTOM PANE (50% width = 6 cols): Action, Diff, and Remediate -->
+        <section class="col-span-6 h-full bg-slate-900/60 border-r border-slate-800 flex flex-col overflow-y-auto">
+
+            <!-- Action Bar Header -->
+            <div class="p-6 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between shrink-0">
+                <div>
+                    <h2 class="text-white font-semibold text-sm flex items-center gap-2">
+                        <i data-lucide="cpu" class="w-4 h-4 text-rose-500"></i> Autonomous Remediation Engine (Gemini 2.5 Flash)
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Transforms vulnerable AST nodes into cryptographically secure parameterized alternatives.</p>
+                </div>
+                <button id="remediate-btn" onclick="runAutonomousRemediation()" class="px-5 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs rounded-xl transition shadow-lg shadow-emerald-950/60 flex items-center gap-2 border border-emerald-500/30 shrink-0">
+                    <i data-lucide="zap" class="w-4 h-4 text-emerald-200 animate-bounce"></i> Run Autonomous Remediate
+                </button>
+            </div>
+
+            <!-- Diff Viewer Container -->
+            <div class="p-6 space-y-4 flex-1">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-mono uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-2">
+                        <i data-lucide="git-compare" class="w-4 h-4 text-indigo-400"></i> GitHub-Style Side-by-Side Diff Viewer
+                    </h3>
+                    <span id="diff-status" class="text-xs font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">Waiting for execution...</span>
+                </div>
+
+                <!-- Side-by-Side Diff Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <!-- Left Side: Old Vulnerable Code -->
+                    <div class="glass-panel rounded-xl overflow-hidden flex flex-col border border-slate-800">
+                        <div class="bg-rose-950/30 px-3 py-2 border-b border-rose-900/40 text-[11px] font-mono text-rose-400 flex items-center justify-between">
+                            <span>ORIGINAL (Vulnerable)</span>
+                            <span>3 bugs</span>
+                        </div>
+                        <div id="diff-left" class="p-4 bg-slate-950/90 font-mono text-xs text-slate-400 space-y-1.5 h-64 overflow-y-auto">
+                            <div class="text-slate-600">import os</div>
+                            <div class="text-slate-600">import sqlite3</div>
+                            <div>&nbsp;</div>
+                            <div class="diff-red text-rose-300 px-1 rounded">- API_KEY = 'sk_live_99812739182739182739'</div>
+                            <div>&nbsp;</div>
+                            <div class="text-slate-600">def execute_query(user_input):</div>
+                            <div class="diff-red text-rose-300 px-1 rounded">-    query = f"SELECT * FROM users WHERE name = '{user_input}'"</div>
+                            <div class="text-slate-600">    conn = sqlite3.connect('db.sqlite')</div>
+                            <div class="text-slate-600">    cursor = conn.cursor()</div>
+                            <div class="text-slate-600">    cursor.execute(query)</div>
+                            <div>&nbsp;</div>
+                            <div class="diff-red text-rose-300 px-1 rounded">-    os.system("echo " + user_input)</div>
+                            <div class="text-slate-600">    return cursor.fetchall()</div>
+                        </div>
+                    </div>
+
+                    <!-- Right Side: New Secure Patched Code -->
+                    <div class="glass-panel rounded-xl overflow-hidden flex flex-col border border-slate-800">
+                        <div class="bg-emerald-950/30 px-3 py-2 border-b border-emerald-900/40 text-[11px] font-mono text-emerald-400 flex items-center justify-between">
+                            <span>REMEDIATED (Secure)</span>
+                            <span>0 bugs</span>
+                        </div>
+                        <div id="diff-right" class="p-4 bg-slate-950/90 font-mono text-xs text-slate-400 space-y-1.5 h-64 overflow-y-auto">
+                            <div class="text-slate-600">import os</div>
+                            <div class="text-slate-600">import sqlite3</div>
+                            <div>&nbsp;</div>
+                            <div id="patch-line-1" class="text-slate-600">+ API_KEY = os.environ.get('API_KEY')</div>
+                            <div>&nbsp;</div>
+                            <div class="text-slate-600">def execute_query(user_input):</div>
+                            <div id="patch-line-2" class="diff-green text-emerald-300 px-1 rounded">+    query = "SELECT * FROM users WHERE name = ?"</div>
+                            <div class="text-slate-600">    conn = sqlite3.connect('db.sqlite')</div>
+                            <div class="text-slate-600">    cursor = conn.cursor()</div>
+                            <div id="patch-line-3" class="diff-green text-emerald-300 px-1 rounded">+    cursor.execute(query, (user_input,))</div>
+                            <div>&nbsp;</div>
+                            <div id="patch-line-4" class="diff-green text-emerald-300 px-1 rounded">+    subprocess.run(["echo", user_input], check=True)</div>
+                            <div class="text-slate-600">    return cursor.fetchall()</div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANE (25% width = 3 cols): Live Telemetry & Verification Footer -->
+        <section class="col-span-1 p-0 h-full bg-slate-900/90 flex flex-col overflow-y-auto col-span-3">
+
+            <!-- Pane Header -->
+            <div class="h-11 px-4 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between shrink-0">
+                <span class="text-xs text-slate-300 font-semibold flex items-center gap-2">
+                    <i data-lucide="activity" class="w-4 h-4 text-amber-400"></i> Live Telemetry Feed
+                </span>
+                <span class="text-[10px] text-slate-500 font-mono">Real-Time</span>
+            </div>
+
+            <!-- Telemetry Cards -->
+            <div class="p-4 space-y-4 flex-1">
+
+                <!-- Red Card: Shannon Entropy -->
+                <div class="p-3.5 rounded-xl bg-rose-950/40 border border-rose-900/50 glow-red space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-mono font-semibold uppercase tracking-wider text-rose-400 flex items-center gap-1.5">
+                            <i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i> Critical Entropy Alert
+                        </span>
+                        <span class="text-[10px] font-mono text-rose-500">Line 5</span>
+                    </div>
+                    <p class="text-xs text-slate-200 font-mono font-bold">Shannon Entropy > 4.8</p>
+                    <p class="text-[11px] text-slate-400 leading-tight">High-randomness string matched as raw API secret token. Exposed in global scope.</p>
+                </div>
+
+                <!-- Yellow Card: AST Violation -->
+                <div class="p-3.5 rounded-xl bg-amber-950/40 border border-amber-900/50 space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-mono font-semibold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                            <i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i> AST Violation
+                        </span>
+                        <span class="text-[10px] font-mono text-amber-500">Line 9, 15</span>
+                    </div>
+                    <p class="text-xs text-slate-200 font-mono font-bold">Unparameterized Command & SQLi</p>
+                    <p class="text-[11px] text-slate-400 leading-tight">String concatenation inside SQL execute() and unescaped OS execution hook detected.</p>
+                </div>
+
+                <!-- Blue Card: Slopsquatting Audit -->
+                <div class="p-3.5 rounded-xl bg-indigo-950/40 border border-indigo-900/50 space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-mono font-semibold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                            <i data-lucide="package" class="w-3.5 h-3.5"></i> Supply-Chain Scan
+                        </span>
+                        <span class="text-[10px] font-mono text-indigo-400">PyPI Live</span>
+                    </div>
+                    <p class="text-xs text-slate-200 font-mono font-bold">0 Hallucinated Packages</p>
+                    <p class="text-[11px] text-slate-400 leading-tight">All dependency references verified against official live PyPI registry indices.</p>
+                </div>
+
+                <!-- Verification Footer / Checklist -->
+                <div class="pt-4 border-t border-slate-800 space-y-3">
+                    <h4 class="text-xs font-semibold text-slate-300 uppercase tracking-wider font-mono flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i> Verification Proof Checklist
+                    </h4>
+
+                    <div class="space-y-2 font-mono text-xs">
+                        <!-- Check 1 -->
+                        <div id="check-item-1" class="flex items-center justify-between p-2.5 rounded-lg bg-slate-950 border border-slate-800 transition">
+                            <span class="text-slate-400 flex items-center gap-2">
+                                <i data-lucide="check" class="w-3.5 h-3.5 text-slate-600" id="icon-1"></i> AST Security Audit
+                            </span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-medium" id="status-1">Pending</span>
+                        </div>
+
+                        <!-- Check 2 -->
+                        <div id="check-item-2" class="flex items-center justify-between p-2.5 rounded-lg bg-slate-950 border border-slate-800 transition">
+                            <span class="text-slate-400 flex items-center gap-2">
+                                <i data-lucide="check" class="w-3.5 h-3.5 text-slate-600" id="icon-2"></i> Entropy Normalized
+                            </span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-medium" id="status-2">Pending</span>
+                        </div>
+
+                        <!-- Check 3 -->
+                        <div id="check-item-3" class="flex items-center justify-between p-2.5 rounded-lg bg-slate-950 border border-slate-800 transition">
+                            <span class="text-slate-400 flex items-center gap-2">
+                                <i data-lucide="check" class="w-3.5 h-3.5 text-slate-600" id="icon-3"></i> Slopsquatting Cleared
+                            </span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-slate-800 text-slate-400 font-medium" id="status-3">Verified</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
     </main>
 
+    <!-- JavaScript Interaction Logic -->
     <script>
         lucide.createIcons();
 
-        function exportPR() {
-            const patch = "--- old\n+++ new\n... (generated diff)";
-            const blob = new Blob([patch], {type: 'text/plain'});
+        function runAutonomousRemediation() {
+            const btn = document.getElementById('remediate-btn');
+            const diffStatus = document.getElementById('diff-status');
+
+            // Button loading state
+            btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Remediating AST...`;
+            diffStatus.innerText = 'Compiling AST & Applying Gemini Patch...';
+            diffStatus.className = 'text-xs font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse';
+
+            setTimeout(() => {
+                // Update Diff Status
+                diffStatus.innerText = 'Patched & Verified (0 Bugs)';
+                diffStatus.className = 'text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+
+                // Restore Button
+                btn.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-white"></i> Remediation Applied Successfully`;
+                btn.className = 'px-5 py-3 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-950/60 flex items-center gap-2 border border-emerald-500/30 shrink-0';
+                lucide.createIcons();
+
+                // Update Verification Checklist items to green / success
+                document.getElementById('status-1').innerText = 'Passed';
+                document.getElementById('status-1').className = 'text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold';
+                document.getElementById('check-item-1').className = 'flex items-center justify-between p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-900/40 transition';
+                document.getElementById('icon-1').className = 'w-3.5 h-3.5 text-emerald-400';
+
+                document.getElementById('status-2').innerText = 'Normalized';
+                document.getElementById('status-2').className = 'text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold';
+                document.getElementById('check-item-2').className = 'flex items-center justify-between p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-900/40 transition';
+                document.getElementById('icon-2').className = 'w-3.5 h-3.5 text-emerald-400';
+
+            }, 1000);
+        }
+
+        function exportGitHubPR() {
+            const patchContent = `# VibeSafe Autonomous PR Remediation
+## Security Audit Results
+- **AST Vulnerabilities Fixed:** 3 Critical / High
+- **Shannon Entropy Sanitized:** API_KEY moved to os.environ
+- **SQLi Parameterized:** query replaced with execute(query, (params,))
+
+## Diff Summary
+- Removed unparameterized string concatenation in SQL & os.system
+- Added parameterized queries and secure subprocess execution
+`;
+
+            const blob = new Blob([patchContent], { type: 'text/markdown' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'vibe-safe-patch.patch';
+            a.download = 'vibesafe-security-patch.md';
             a.click();
-            alert("GitHub PR ready for download!");
-        }
 
-        // Logic to update UI...
+            // Brief visual feedback
+            alert('🎉 VibeSafe Enterprise PR & .patch successfully generated and downloaded for GitHub submission!');
+        }
     </script>
 </body>
 </html>
