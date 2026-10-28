@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VibeSafe — Enterprise DevSecOps Security Compiler</title>
+    <title>VibeSafe — The Security Compiler for AI-Generated Code</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/umd/lucide.min.js"></script>
     <style>
         :root {
@@ -18,90 +18,144 @@
             --border: #475569;
             --destructive: #EF4444;
         }
-        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--bg); color: var(--fg); overflow: hidden; }
+        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--bg); color: var(--fg); }
         .font-mono { font-family: 'JetBrains Mono', monospace; }
         .glass-panel { background: var(--card); border: 1px solid var(--border); }
+        .hero-gradient { background: radial-gradient(circle at top center, rgba(34, 197, 94, 0.15) 0%, transparent 70%); }
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg); }
         ::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
         button, a, [role="button"] { cursor: pointer; }
+        .drag-over { border-color: var(--accent) !important; background: rgba(34, 197, 94, 0.05) !important; }
     </style>
 </head>
-<body class="h-screen w-screen flex flex-col bg-slate-950 text-slate-300 selection:bg-rose-500 selection:text-white">
+<body class="bg-slate-950 text-slate-300 selection:bg-emerald-500 selection:text-white overflow-x-hidden">
 
-    <!-- Top: 60px Fixed Header -->
-    <header class="h-[60px] min-h-[60px] bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between z-50">
-        <div class="flex items-center space-x-3">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-rose-600 to-red-600 flex items-center justify-center glow-red shadow-lg shadow-rose-950/50">
-                <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
-            </div>
-            <div>
-                <div class="flex items-center gap-2">
-                    <h1 class="font-bold text-sm tracking-tight text-white">VibeSafe Control Plane</h1>
-                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-mono font-medium">Enterprise v3.2</span>
+    <!-- Section 1: SaaS Hero -->
+    <section class="min-h-screen flex flex-col items-center justify-center relative hero-gradient px-6 py-20 text-center">
+        <!-- Floating Header -->
+        <header class="fixed top-0 left-0 right-0 h-16 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-8 z-[100]">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-950/50">
+                    <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
                 </div>
-                <p class="text-[11px] text-slate-400">Autonomous AST Security & Verification Compiler</p>
+                <h1 class="font-bold text-lg tracking-tight text-white uppercase">VibeSafe</h1>
+            </div>
+            <div class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-400">
+                <a href="#" class="hover:text-emerald-400 transition">Product</a>
+                <a href="#" class="hover:text-emerald-400 transition">Security</a>
+                <a href="#" class="hover:text-emerald-400 transition">Enterprise</a>
+                <a href="#control-plane" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition">Launch App</a>
+            </div>
+        </header>
+
+        <div class="max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-medium">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span>Deterministic Security Engine v3.2</span>
+            </div>
+            <h2 class="text-5xl md:text-7xl font-bold text-white tracking-tight leading-[1.1]">
+                The Security Compiler for <br class="hidden md:block" />
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">AI-Generated Code.</span>
+            </h2>
+            <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
+                Vibe-coding is fast. It is also insecure. <span class="text-white font-medium">VibeSafe</span> deterministically audits and auto-patches your AI-generated code before deployment.
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                <a href="#control-plane" class="px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-xl shadow-emerald-950/40 flex items-center gap-2 group">
+                    Enter the Control Plane
+                    <i data-lucide="arrow-down" class="w-5 h-5 group-hover:translate-y-1 transition"></i>
+                </a>
+                <button class="px-8 py-4 bg-slate-900 border border-slate-800 hover:border-slate-700 text-white font-bold rounded-xl transition">
+                    View Security Manifesto
+                </button>
             </div>
         </div>
 
-        <div class="flex items-center space-x-4">
-            <div class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 text-xs text-slate-300 font-mono">
-                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse glow-green"></span>
-                <span class="font-medium text-emerald-400">System Online</span>
-                <span class="text-slate-600">|</span>
-                <span class="text-slate-400">AST Engine Active</span>
-            </div>
-
-            <button onclick="exportGitHubPR()" class="px-4 py-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-semibold text-xs rounded-xl transition shadow-lg shadow-rose-950/50 flex items-center gap-2 border border-rose-500/30">
-                <i data-lucide="git-pull-request" class="w-4 h-4"></i> Export PR
-            </button>
-        </div>
-    </header>
-
-    <!-- Main Content: Slim Sidebar + 3-Pane IDE Layout -->
-    <main class="h-[calc(100vh-60px)] w-full flex overflow-hidden">
-
-        <!-- SLIM SIDEBAR (Activity Bar) -->
-        <nav class="w-[50px] min-w-[50px] bg-slate-950 border-r border-slate-800 flex flex-col items-center py-4 space-y-6 shrink-0">
-            <button onclick="showMode('scanner')" class="p-2 rounded-lg text-rose-500 bg-rose-500/10 border border-rose-500/20 transition group relative" title="Code Scanner">
-                <i data-lucide="code-2" class="w-5 h-5"></i>
-                <span class="absolute left-14 bg-slate-900 text-white text-[10px] px-2 py-1 rounded border border-slate-700 opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-[100]">Code Scanner</span>
-            </button>
-            <button onclick="showMode('auditor')" class="p-2 rounded-lg text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/10 transition group relative" title="Dependency Auditor">
-                <i data-lucide="box" class="w-5 h-5"></i>
-                <span class="absolute left-14 bg-slate-900 text-white text-[10px] px-2 py-1 rounded border border-slate-700 opacity-0 group-hover:opacity-100 transition whitespace-nowrap z-[100]">Dependency Auditor</span>
-            </button>
-            <div class="flex-1"></div>
-            <button class="p-2 rounded-lg text-slate-500 hover:text-white transition group relative">
-                <i data-lucide="settings" class="w-5 h-5"></i>
-            </button>
-        </nav>
-
-        <!-- Dynamic Content Area -->
-        <div id="scanner-view" class="flex-1 grid grid-cols-12 overflow-hidden">
-
-        <!-- LEFT PANE (40% width = 5 cols): Vulnerable Code Editor -->
-        <section class="col-span-5 h-full bg-slate-900/90 border-r border-slate-800 flex flex-col overflow-hidden">
-            <!-- Pane Header -->
-            <div class="h-11 px-4 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between shrink-0">
-                <div class="flex items-center space-x-2">
-                    <div class="flex space-x-1.5">
-                        <div class="w-3 h-3 rounded-full bg-rose-500/80"></div>
-                        <div class="w-3 h-3 rounded-full bg-amber-500/80"></div>
-                        <div class="w-3 h-3 rounded-full bg-emerald-500/80"></div>
+        <!-- Hero Preview Mockup -->
+        <div class="mt-20 w-full max-w-6xl mx-auto rounded-2xl border border-slate-800 bg-slate-900/50 p-4 shadow-2xl relative">
+            <div class="absolute inset-0 bg-emerald-500/5 blur-3xl rounded-full"></div>
+            <div class="relative bg-slate-950 rounded-xl border border-slate-800 h-[400px] overflow-hidden flex flex-col shadow-inner">
+                <div class="h-10 border-b border-slate-800 flex items-center px-4 space-x-2">
+                    <div class="w-3 h-3 rounded-full bg-slate-800"></div>
+                    <div class="w-3 h-3 rounded-full bg-slate-800"></div>
+                    <div class="w-3 h-3 rounded-full bg-slate-800"></div>
+                </div>
+                <div class="flex-1 flex items-center justify-center font-mono text-sm text-slate-600">
+                    <div class="space-y-2">
+                        <div class="flex items-center gap-4"><span class="text-emerald-500">1</span> <span>import os</span></div>
+                        <div class="flex items-center gap-4"><span class="text-emerald-500">2</span> <span class="bg-rose-500/20 text-rose-400 px-1 rounded">- API_KEY = "sk_live_..."</span></div>
+                        <div class="flex items-center gap-4"><span class="text-emerald-500">3</span> <span class="bg-emerald-500/20 text-emerald-400 px-1 rounded">+ API_KEY = os.environ.get("API_KEY")</span></div>
+                        <div class="flex items-center gap-4"><span class="text-emerald-500">4</span> <span>...</span></div>
                     </div>
-                    <span class="text-xs text-slate-400 font-mono ml-2 flex items-center gap-1.5">
-                        <i data-lucide="file-code" class="w-3.5 h-3.5 text-slate-500"></i> app/service/vulnerable_auth.py
-                    </span>
                 </div>
-                <button onclick="runScan()" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded text-[11px] font-mono transition">🔍 Scan Code</button>
             </div>
+        </div>
+    </section>
 
-            <!-- Code Editor Body -->
-            <div class="flex-1 overflow-hidden bg-slate-950 flex flex-col">
-                <textarea id="code-input" class="w-full h-full bg-slate-950 text-slate-300 font-mono text-xs p-4 resize-none focus:outline-none leading-relaxed" spellcheck="false">import os
+    <!-- Section 2: The Core App (The Control Plane) -->
+    <section id="control-plane" class="h-screen flex flex-col bg-slate-950 relative z-10 border-t border-slate-800">
+
+        <!-- App Header (Internal) -->
+        <header class="h-14 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between shrink-0">
+            <div class="flex items-center space-x-4">
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Active Workspace</span>
+                <div class="h-4 w-px bg-slate-800"></div>
+                <div class="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-500/5 px-3 py-1 rounded-full border border-emerald-500/10">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    AST Engine Ready
+                </div>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button onclick="showMode('scanner')" id="btn-mode-scanner" class="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold transition">Scanner</button>
+                <button onclick="showMode('auditor')" id="btn-mode-auditor" class="px-3 py-1.5 rounded-lg text-slate-500 hover:text-white text-xs font-bold transition">Auditor</button>
+            </div>
+        </header>
+
+        <!-- Main IDE Grid -->
+        <main class="flex-1 flex overflow-hidden">
+
+            <!-- SIDEBAR NAV (Mini) -->
+            <nav class="w-[60px] bg-slate-900 border-r border-slate-800 flex flex-col items-center py-6 space-y-8 shrink-0">
+                <button class="text-emerald-500"><i data-lucide="layout-grid" class="w-6 h-6"></i></button>
+                <button class="text-slate-600 hover:text-slate-400 transition"><i data-lucide="history" class="w-6 h-6"></i></button>
+                <button class="text-slate-600 hover:text-slate-400 transition"><i data-lucide="shield" class="w-6 h-6"></i></button>
+                <div class="flex-1"></div>
+                <button class="text-slate-600 hover:text-slate-400 transition"><i data-lucide="settings-2" class="w-6 h-6"></i></button>
+            </nav>
+
+            <!-- SCANNER VIEW -->
+            <div id="scanner-view" class="flex-1 grid grid-cols-12 overflow-hidden">
+
+                <!-- LEFT PANE: Editor & File Upload -->
+                <section class="col-span-4 h-full border-r border-slate-800 flex flex-col bg-slate-900/50">
+                    <div class="h-12 px-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-950/40">
+                        <span class="text-xs font-bold text-slate-400 flex items-center gap-2">
+                            <i data-lucide="terminal" class="w-4 h-4"></i> SOURCE_EDITOR
+                        </span>
+                        <button onclick="runScan()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-bold transition shadow-lg shadow-emerald-950/20">Scan Code</button>
+                    </div>
+
+                    <!-- File Drop Zone -->
+                    <div id="drop-zone" class="p-4 border-b border-slate-800">
+                        <div class="border-2 border-dashed border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center gap-2 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition cursor-pointer relative group">
+                            <input type="file" id="file-input" class="absolute inset-0 opacity-0 cursor-pointer" accept=".py,.txt,.js,.json">
+                            <i data-lucide="cloud-upload" class="w-8 h-8 text-slate-500 group-hover:text-emerald-400 transition"></i>
+                            <div class="text-center">
+                                <p class="text-xs font-bold text-slate-300">Drop Python file to audit</p>
+                                <p class="text-[10px] text-slate-500 mt-1">Extract text for security compilation</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Editor -->
+                    <div class="flex-1 relative">
+                        <textarea id="code-input" class="absolute inset-0 w-full h-full bg-slate-950 p-6 text-slate-300 font-mono text-xs leading-relaxed resize-none focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition" spellcheck="false">import os
 import sqlite3
 
 API_KEY = 'sk_live_99812739182739182739'
@@ -113,113 +167,204 @@ def execute_query(user_input):
     cursor.execute(query)
     os.system("echo " + user_input)
     return cursor.fetchall()</textarea>
-            </div>
-
-            <!-- Editor Footer Info -->
-            <div class="h-10 px-4 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between shrink-0 text-xs text-slate-500 font-mono">
-                <span>Python 3.11 AST Parser</span>
-                <span id="scan-status-text" class="text-rose-400">Ready to Scan</span>
-            </div>
-        </section>
-
-        <!-- CENTER PANE (45% width = 4 cols): Action, Diff, and Remediate -->
-        <section class="col-span-4 h-full bg-slate-900/60 border-r border-slate-800 flex flex-col overflow-y-auto">
-            <!-- ... existing action bar ... -->
-            <div class="p-6 border-b border-slate-800 bg-slate-900/80 flex items-center justify-between shrink-0">
-                <div>
-                    <h2 class="text-white font-semibold text-sm flex items-center gap-2">
-                        <i data-lucide="cpu" class="w-4 h-4 text-rose-500"></i> Autonomous Remediation Engine
-                    </h2>
-                </div>
-                <button id="remediate-btn" onclick="runAutonomousRemediation()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] rounded-lg transition flex items-center gap-2 border border-emerald-500/30 shrink-0">
-                    <i data-lucide="zap" class="w-4 h-4"></i> Run Remediate
-                </button>
-            </div>
-
-            <div class="p-6 space-y-4 flex-1">
-                <div class="flex items-center justify-between">
-                    <h3 class="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-2">
-                        <i data-lucide="git-compare" class="w-3.5 h-3.5"></i> Patch Preview
-                    </h3>
-                    <span id="diff-status" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400">Idle</span>
-                </div>
-                <div id="diff-right" class="glass-panel rounded-xl p-4 bg-slate-950/90 font-mono text-[11px] text-slate-400 h-96 overflow-y-auto">
-                    <div class="text-slate-600">Patched code will appear here...</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- RIGHT PANE (25% width = 3 cols): Live Telemetry & Verification Footer -->
-        <section class="col-span-3 h-full bg-slate-900/90 flex flex-col overflow-y-auto">
-            <div class="h-11 px-4 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between shrink-0">
-                <span class="text-xs text-slate-300 font-semibold flex items-center gap-2">
-                    <i data-lucide="activity" class="w-4 h-4 text-amber-400"></i> Live Telemetry
-                </span>
-            </div>
-            <div id="telemetry-container" class="p-4 space-y-4 flex-1">
-                <div class="text-slate-500 text-xs font-mono">No scan data.</div>
-            </div>
-            <div class="p-4 border-t border-slate-800 space-y-3 bg-slate-950/50">
-                <h4 class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider font-mono flex items-center gap-2">
-                    <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-400"></i> Verification Proof
-                </h4>
-                <div class="space-y-2 font-mono text-[10px]">
-                    <div id="check-item-1" class="flex items-center justify-between p-2 rounded bg-slate-950 border border-slate-800 transition">
-                        <span class="text-slate-400 flex items-center gap-2"><i data-lucide="check" class="w-3 h-3 text-slate-600" id="icon-1"></i> AST Security</span>
-                        <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 font-medium" id="status-1">Pending</span>
                     </div>
-                    <div id="check-item-2" class="flex items-center justify-between p-2 rounded bg-slate-950 border border-slate-800 transition">
-                        <span class="text-slate-400 flex items-center gap-2"><i data-lucide="check" class="w-3 h-3 text-slate-600" id="icon-2"></i> Entropy Pass</span>
-                        <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 font-medium" id="status-2">Pending</span>
+
+                    <div class="h-10 px-4 bg-slate-950/60 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono text-slate-500 shrink-0">
+                        <span id="scan-status-text">IDLE: WAITING FOR INPUT</span>
+                        <span>PY_AST_3.11</span>
                     </div>
-                </div>
+                </section>
+
+                <!-- CENTER PANE: Patching Engine -->
+                <section class="col-span-5 h-full border-r border-slate-800 flex flex-col bg-slate-900/30">
+                    <div class="h-12 px-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 shrink-0">
+                        <h2 class="text-xs font-bold text-slate-400 flex items-center gap-2">
+                            <i data-lucide="cpu" class="w-4 h-4"></i> PATCH_COMPILER
+                        </h2>
+                        <button id="remediate-btn" onclick="runAutonomousRemediation()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition shadow-lg shadow-emerald-950/30 flex items-center gap-2 group">
+                            <i data-lucide="zap" class="w-3.5 h-3.5 group-hover:animate-pulse"></i> Remediate AST
+                        </button>
+                    </div>
+
+                    <div class="p-6 flex-1 flex flex-col gap-6 overflow-y-auto">
+                        <div class="flex items-center justify-between shrink-0">
+                            <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <i data-lucide="git-compare" class="w-3.5 h-3.5 text-emerald-500"></i> Deterministic Patch Preview
+                            </h3>
+                            <span id="diff-status" class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 text-[10px] font-mono border border-slate-700">Waiting</span>
+                        </div>
+
+                        <!-- Mock GitHub-Style Diff -->
+                        <div class="flex-1 flex flex-col rounded-xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl">
+                            <div class="h-8 bg-slate-900 border-b border-slate-800 flex items-center px-4 justify-between">
+                                <span class="text-[10px] font-mono text-slate-500">vulnerable_auth.py (diff)</span>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-rose-500/50"></span>
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500/50"></span>
+                                </div>
+                            </div>
+                            <div id="diff-right" class="flex-1 p-6 font-mono text-xs overflow-y-auto leading-relaxed">
+                                <div class="text-slate-600 text-center py-20 italic">
+                                    Run remediation to generate security patches...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- RIGHT PANE: Telemetry -->
+                <section class="col-span-3 h-full flex flex-col bg-slate-950">
+                    <div class="h-12 px-4 border-b border-slate-800 flex items-center bg-slate-950/40 shrink-0">
+                        <span class="text-xs font-bold text-slate-300 flex items-center gap-2">
+                            <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i> LIVE_TELEMETRY
+                        </span>
+                    </div>
+
+                    <div id="telemetry-container" class="flex-1 p-4 space-y-4 overflow-y-auto">
+                        <div class="text-center py-12">
+                            <i data-lucide="shield-alert" class="w-8 h-8 text-slate-700 mx-auto mb-2"></i>
+                            <p class="text-[10px] text-slate-600 font-mono uppercase tracking-widest">No active audit feed</p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 border-t border-slate-800 bg-slate-900/30 space-y-4 shrink-0">
+                        <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Security Verification</h4>
+                        <div class="space-y-2">
+                            <div id="check-item-1" class="flex items-center justify-between p-3 rounded-lg bg-slate-950 border border-slate-800 group transition">
+                                <span class="text-[11px] text-slate-400 font-medium flex items-center gap-2">
+                                    <i data-lucide="check" class="w-3.5 h-3.5 text-slate-700" id="icon-1"></i> AST Integrity Audit
+                                </span>
+                                <span id="status-1" class="text-[10px] font-mono text-slate-600">Pending</span>
+                            </div>
+                            <div id="check-item-2" class="flex items-center justify-between p-3 rounded-lg bg-slate-950 border border-slate-800 group transition">
+                                <span class="text-[11px] text-slate-400 font-medium flex items-center gap-2">
+                                    <i data-lucide="check" class="w-3.5 h-3.5 text-slate-700" id="icon-2"></i> Entropy Normalization
+                                </span>
+                                <span id="status-2" class="text-[10px] font-mono text-slate-600">Pending</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </div>
-        </section>
 
-
-        </div>
-
-        <!-- Dependency Auditor View (Hidden by default) -->
-        <div id="auditor-view" class="hidden flex-1 grid grid-cols-12 overflow-hidden">
-            <!-- Left: Requirements Input -->
-            <section class="col-span-5 h-full bg-slate-900/90 border-r border-slate-800 flex flex-col overflow-hidden">
-                <div class="h-11 px-4 bg-slate-950/60 border-b border-slate-800 flex items-center justify-between shrink-0">
-                    <span class="text-xs text-slate-400 font-mono flex items-center gap-1.5">
-                        <i data-lucide="file-text" class="w-3.5 h-3.5"></i> requirements.txt
-                    </span>
-                    <button onclick="runAudit()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-mono transition">📦 Audit PyPI</button>
-                </div>
-                <textarea id="reqs-input" class="flex-1 bg-slate-950 text-slate-300 font-mono text-xs p-4 resize-none focus:outline-none leading-relaxed" spellcheck="false">requests
+            <!-- AUDITOR VIEW (Hidden) -->
+            <div id="auditor-view" class="hidden flex-1 grid grid-cols-12 overflow-hidden">
+                <!-- Requirements Audit View -->
+                <section class="col-span-5 h-full border-r border-slate-800 flex flex-col bg-slate-900/50">
+                    <div class="h-12 px-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-950/40">
+                        <span class="text-xs font-bold text-slate-400 flex items-center gap-2">
+                            <i data-lucide="package" class="w-4 h-4"></i> DEPENDENCY_MANIFEST
+                        </span>
+                        <button onclick="runAudit()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-bold transition">Audit PyPI</button>
+                    </div>
+                    <textarea id="reqs-input" class="flex-1 bg-slate-950 p-6 text-slate-300 font-mono text-xs leading-relaxed resize-none focus:outline-none" spellcheck="false">requests
 astroid
 streamlit
 fake_ai_hallucinated_pkg_xyz123</textarea>
-            </section>
+                </section>
+                <section class="col-span-7 h-full bg-slate-950 flex flex-col overflow-y-auto p-8">
+                    <div class="max-w-3xl space-y-6">
+                        <div>
+                            <h2 class="text-lg font-bold text-white flex items-center gap-3">
+                                <i data-lucide="search-check" class="w-6 h-6 text-indigo-400"></i> AI Slopsquatting Auditor
+                            </h2>
+                            <p class="text-sm text-slate-400 mt-2">Preventing supply-chain attacks from hallucinated packages.</p>
+                        </div>
+                        <div id="audit-results" class="space-y-3">
+                            <div class="p-8 border border-dashed border-slate-800 rounded-2xl text-center">
+                                <p class="text-xs text-slate-500 font-mono uppercase tracking-widest">Execute manifest audit to see results</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </section>
 
-            <!-- Center: Audit Results -->
-            <section class="col-span-7 h-full bg-slate-900/60 flex flex-col overflow-y-auto p-6">
-                <div class="mb-6">
-                    <h2 class="text-white font-semibold text-sm flex items-center gap-2">
-                        <i data-lucide="shield-check" class="w-4 h-4 text-indigo-400"></i> AI Slopsquatting Auditor
-                    </h2>
-                    <p class="text-xs text-slate-400 mt-0.5">Verifies every dependency against the live PyPI registry to prevent AI-hallucinated supply chain attacks.</p>
-                </div>
-                <div id="audit-results" class="grid grid-cols-1 gap-4">
-                    <div class="text-slate-500 text-xs font-mono">Enter requirements and click "Audit PyPI" to start.</div>
-                </div>
-            </section>
-        </div>
-    </main>
-
-
-    <!-- JavaScript Interaction Logic -->
+    <!-- JS LOGIC -->
     <script>
         lucide.createIcons();
 
-        async function runScan() {
-            const code = document.getElementById('code-input').value;
+        // 1. Mode Switching
+        function showMode(mode) {
+            const scanner = document.getElementById('scanner-view');
+            const auditor = document.getElementById('auditor-view');
+            const btnScan = document.getElementById('btn-mode-scanner');
+            const btnAudit = document.getElementById('btn-mode-auditor');
+
+            if (mode === 'scanner') {
+                scanner.classList.remove('hidden');
+                auditor.classList.add('hidden');
+                btnScan.className = 'px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold transition';
+                btnAudit.className = 'px-3 py-1.5 rounded-lg text-slate-500 hover:text-white text-xs font-bold transition';
+            } else {
+                scanner.classList.add('hidden');
+                auditor.classList.remove('hidden');
+                btnAudit.className = 'px-3 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-bold transition';
+                btnScan.className = 'px-3 py-1.5 rounded-lg text-slate-500 hover:text-white text-xs font-bold transition';
+            }
+            lucide.createIcons();
+        }
+
+        // 2. File Upload Handling
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const codeInput = document.getElementById('code-input');
+
+        fileInput.addEventListener('change', handleFile);
+        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            if (e.dataTransfer.files.length) handleFile({ target: { files: e.dataTransfer.files } });
+        });
+
+        async function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
             const statusText = document.getElementById('scan-status-text');
-            statusText.innerText = 'Scanning...';
-            statusText.className = 'text-amber-400 animate-pulse';
+            statusText.innerText = 'STATUS: UPLOADING_TO_SERVER_DB...';
+            statusText.className = 'text-indigo-400 animate-pulse';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const res = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+
+                if (data.error) {
+                    statusText.innerText = 'STATUS: UPLOAD_ERROR';
+                    statusText.className = 'text-rose-500 font-bold';
+                    alert(data.error);
+                } else {
+                    codeInput.value = data.code;
+                    statusText.innerText = `SAVED TO DB [${data.id.substring(0,6)}]: ${data.vulns.length} VULNS`;
+                    statusText.className = data.vulns.length > 0 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold';
+                    updateTelemetry(data.vulns);
+                }
+            } catch (e) {
+                // Fallback to client-side read if offline/error
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    codeInput.value = event.target.result;
+                    runScan();
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // 3. Scanner API
+        async function runScan() {
+            const code = codeInput.value;
+            const statusText = document.getElementById('scan-status-text');
+            statusText.innerText = 'STATUS: SCANNING_AST...';
+            statusText.className = 'text-emerald-400 animate-pulse';
 
             try {
                 const res = await fetch('/api/scan', {
@@ -229,49 +374,49 @@ fake_ai_hallucinated_pkg_xyz123</textarea>
                 });
                 const data = await res.json();
                 if (data.error) {
-                    statusText.innerText = 'Syntax Error';
-                    statusText.className = 'text-rose-500';
+                    statusText.innerText = 'STATUS: SYNTAX_ERROR';
+                    statusText.className = 'text-rose-500 font-bold';
                     alert(data.error);
                 } else {
-                    statusText.innerText = `${data.vulns.length} Vulnerabilities Found`;
+                    statusText.innerText = `STATUS: ${data.vulns.length} VULNERABILITIES DETECTED`;
                     statusText.className = data.vulns.length > 0 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold';
-
-                    // Update diff left side or telemetry view if needed
                     updateTelemetry(data.vulns);
                 }
             } catch (e) {
-                statusText.innerText = 'Scan Failed';
-                statusText.className = 'text-rose-500';
+                statusText.innerText = 'STATUS: SCAN_FAILED';
+                statusText.className = 'text-rose-500 font-bold';
             }
         }
 
         function updateTelemetry(vulns) {
             const container = document.getElementById('telemetry-container');
-            container.innerHTML = ''; // Clear existing
+            container.innerHTML = '';
 
             if (vulns.length === 0) {
                 container.innerHTML = `
-                    <div class="p-3.5 rounded-xl bg-emerald-950/40 border border-emerald-900/50 space-y-1.5">
-                        <span class="text-[10px] font-mono font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                            <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> All Checks Passed
-                        </span>
-                        <p class="text-xs text-slate-200 font-mono font-bold">No AST Violations</p>
-                        <p class="text-[11px] text-slate-400 leading-tight">Your code follows the deterministic security rules configured in the AST engine.</p>
+                    <div class="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-center py-10">
+                        <i data-lucide="check-circle" class="w-8 h-8 text-emerald-400 mx-auto mb-3"></i>
+                        <p class="text-xs font-bold text-white uppercase">No Vulnerabilities Found</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Code satisfies deterministic security gates.</p>
                     </div>
                 `;
             } else {
                 vulns.forEach(v => {
                     const color = v.severity === 'CRITICAL' ? 'rose' : 'amber';
-                    const icon = v.severity === 'CRITICAL' ? 'alert-octagon' : 'alert-triangle';
+                    const icon = v.severity === 'CRITICAL' ? 'shield-alert' : 'alert-triangle';
                     container.innerHTML += `
-                        <div class="p-3.5 rounded-xl bg-${color}-950/40 border border-${color}-900/50 space-y-1.5">
-                            <div class="flex items-center justify-between">
-                                <span class="text-[10px] font-mono font-semibold uppercase tracking-wider text-${color}-400 flex items-center gap-1.5">
-                                    <i data-lucide="${icon}" class="w-3.5 h-3.5"></i> ${v.type}
-                                </span>
-                                <span class="text-[10px] font-mono text-${color}-500">Line ${v.line}</span>
+                        <div class="p-4 rounded-xl bg-${color}-500/5 border border-${color}-500/20 group transition">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[9px] font-bold text-${color}-400 uppercase tracking-widest">${v.type}</span>
+                                <span class="text-[9px] font-mono text-slate-600">LN:${v.line}</span>
                             </div>
-                            <p class="text-xs text-slate-200 font-mono font-bold">${v.msg}</p>
+                            <p class="text-xs font-bold text-slate-200">${v.msg}</p>
+                            <div class="mt-3 flex items-center gap-2">
+                                <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-${color}-500 w-full animate-in slide-in-from-left duration-1000"></div>
+                                </div>
+                                <span class="text-[9px] font-bold text-${color}-500 uppercase">${v.severity}</span>
+                            </div>
                         </div>
                     `;
                 });
@@ -279,17 +424,18 @@ fake_ai_hallucinated_pkg_xyz123</textarea>
             lucide.createIcons();
         }
 
+        // 4. Patching Engine API
         async function runAutonomousRemediation() {
             const btn = document.getElementById('remediate-btn');
             const diffStatus = document.getElementById('diff-status');
-            const code = document.getElementById('code-input').value;
+            const code = codeInput.value;
 
-            btn.innerHTML = `<svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Remediating AST...`;
-            diffStatus.innerText = 'Compiling AST & Applying Patches...';
-            diffStatus.className = 'text-xs font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 animate-pulse';
+            btn.disabled = true;
+            btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Patching...`;
+            diffStatus.innerText = 'Compiling Patches...';
+            diffStatus.className = 'px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono border border-emerald-500/30 animate-pulse';
 
             try {
-                // 1. Scan first
                 const scanRes = await fetch('/api/scan', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -309,7 +455,9 @@ fake_ai_hallucinated_pkg_xyz123</textarea>
                     currentCode = patchData.patched;
                 }
 
-                // 2. Re-scan patched code
+                document.getElementById('diff-right').innerHTML = `<pre class="text-emerald-400 bg-emerald-500/5 p-4 rounded-lg border border-emerald-500/10 overflow-x-auto">${escapeHtml(currentCode)}</pre>`;
+                codeInput.value = currentCode;
+
                 const finalScanRes = await fetch('/api/scan', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -318,55 +466,44 @@ fake_ai_hallucinated_pkg_xyz123</textarea>
                 const finalScanData = await finalScanRes.json();
                 const finalVulns = finalScanData.vulns || [];
 
-                // Update right side diff view with the patched code
-                document.getElementById('diff-right').innerHTML = `<pre class="text-emerald-300">${escapeHtml(currentCode)}</pre>`;
-                document.getElementById('code-input').value = currentCode;
-
                 if (finalVulns.length === 0) {
-                    diffStatus.innerText = 'Patched & Verified (0 Bugs)';
-                    diffStatus.className = 'text-xs font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                    diffStatus.innerText = 'Verified (0 Bugs)';
+                    diffStatus.className = 'px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono border border-emerald-500/30';
+                    updateChecklist(true);
                 } else {
-                    diffStatus.innerText = `Partial Fix (${finalVulns.length} remaining)`;
-                    diffStatus.className = 'text-xs font-mono px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30';
+                    diffStatus.innerText = 'Partial Fix';
+                    diffStatus.className = 'px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-mono border border-amber-500/30';
                 }
 
-                btn.innerHTML = `<i data-lucide="check" class="w-4 h-4 text-white"></i> Remediation Complete`;
-                btn.className = 'px-5 py-3 bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-lg flex items-center gap-2 border border-emerald-500/30 shrink-0';
+                btn.disabled = false;
+                btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i> Remediation Applied`;
                 lucide.createIcons();
-
-                // Update Checklist
-                document.getElementById('status-1').innerText = 'Passed';
-                document.getElementById('status-1').className = 'text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold';
-                document.getElementById('check-item-1').className = 'flex items-center justify-between p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-900/40 transition';
-                document.getElementById('icon-1').className = 'w-3.5 h-3.5 text-emerald-400';
-
-                document.getElementById('status-2').innerText = 'Normalized';
-                document.getElementById('status-2').className = 'text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-semibold';
-                document.getElementById('check-item-2').className = 'flex items-center justify-between p-2.5 rounded-lg bg-emerald-950/20 border border-emerald-900/40 transition';
-                document.getElementById('icon-2').className = 'w-3.5 h-3.5 text-emerald-400';
-
             } catch (e) {
-                diffStatus.innerText = 'Remediation Failed';
-                diffStatus.className = 'text-xs font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/30';
-                btn.innerHTML = `Remediation Error`;
+                btn.disabled = false;
+                btn.innerHTML = `Error`;
             }
         }
 
-        function showMode(mode) {
-            if (mode === 'scanner') {
-                document.getElementById('scanner-view').classList.remove('hidden');
-                document.getElementById('auditor-view').classList.add('hidden');
-            } else {
-                document.getElementById('scanner-view').classList.add('hidden');
-                document.getElementById('auditor-view').classList.remove('hidden');
-            }
+        function updateChecklist(success) {
+            if (!success) return;
+            const items = ['status-1', 'status-2'];
+            items.forEach((id, i) => {
+                const el = document.getElementById(id);
+                const parent = document.getElementById(`check-item-${i+1}`);
+                const icon = document.getElementById(`icon-${i+1}`);
+                el.innerText = 'VERIFIED';
+                el.className = 'text-[10px] font-bold text-emerald-500';
+                parent.className = 'flex items-center justify-between p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20 transition';
+                icon.className = 'w-3.5 h-3.5 text-emerald-500';
+            });
             lucide.createIcons();
         }
 
+        // 5. Auditor API
         async function runAudit() {
             const requirements = document.getElementById('reqs-input').value;
             const container = document.getElementById('audit-results');
-            container.innerHTML = '<div class="text-amber-400 font-mono text-xs animate-pulse">Auditing dependencies against live PyPI...</div>';
+            container.innerHTML = '<div class="text-indigo-400 font-mono text-xs animate-pulse p-4">AUDITING_PYPI_MANIFEST...</div>';
 
             try {
                 const res = await fetch('/api/audit', {
@@ -379,17 +516,19 @@ fake_ai_hallucinated_pkg_xyz123</textarea>
 
                 data.results.forEach(res => {
                     const color = res.risk === 'CRITICAL' ? 'rose' : 'emerald';
-                    const icon = res.risk === 'CRITICAL' ? 'x-circle' : 'check-circle';
+                    const icon = res.risk === 'CRITICAL' ? 'shield-off' : 'shield-check';
                     container.innerHTML += `
-                        <div class="p-4 rounded-xl bg-${color}-950/20 border border-${color}-900/40 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <i data-lucide="${icon}" class="w-5 h-5 text-${color}-400"></i>
+                        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between hover:border-slate-700 transition">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-${color}-500/10 flex items-center justify-center">
+                                    <i data-lucide="${icon}" class="w-6 h-6 text-${color}-400"></i>
+                                </div>
                                 <div>
-                                    <div class="text-xs font-bold text-white">${res.package}</div>
-                                    <div class="text-[10px] text-slate-400 font-mono">${res.status}</div>
+                                    <div class="text-sm font-bold text-white">${res.package}</div>
+                                    <div class="text-[10px] text-slate-500 font-mono uppercase tracking-widest">${res.status}</div>
                                 </div>
                             </div>
-                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-${color}-500/10 text-${color}-400 border border-${color}-500/20 font-mono">
+                            <span class="px-3 py-1 rounded-full bg-${color}-500/10 text-${color}-400 border border-${color}-500/20 text-[10px] font-bold uppercase">
                                 ${res.risk}
                             </span>
                         </div>
@@ -397,32 +536,22 @@ fake_ai_hallucinated_pkg_xyz123</textarea>
                 });
                 lucide.createIcons();
             } catch (e) {
-                container.innerHTML = '<div class="text-rose-500 font-mono text-xs">Audit failed.</div>';
+                container.innerHTML = '<div class="text-rose-500 font-mono text-xs p-4">Audit Failed. Network or API error.</div>';
             }
         }
+
         function escapeHtml(text) {
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
         function exportGitHubPR() {
-            const patchContent = `# VibeSafe Autonomous PR Remediation
-## Security Audit Results
-- **AST Vulnerabilities Fixed:** Automatic AST Patching Applied
-- **Verification Status:** Verified via re-scan loop
-`;
-
+            const patchContent = `# VibeSafe Autonomous PR Remediation\n\nSecurity compiler verified this patch successfully.`;
             const blob = new Blob([patchContent], { type: 'text/markdown' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = 'vibesafe-security-patch.md';
-            a.click();
-            alert('🎉 VibeSafe Enterprise PR successfully generated and downloaded!');
+            a.href = url; a.download = 'vibesafe-security-patch.md'; a.click();
+            alert('🎉 VibeSafe PR generated!');
         }
     </script>
-
+</body>
+</html>
