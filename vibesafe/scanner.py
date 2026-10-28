@@ -16,6 +16,7 @@ class AegisScanner(ast.NodeVisitor):
         self.vulnerabilities = []
 
     def visit_Call(self, node):
+        # 1. Dangerous Functions (eval, exec)
         if isinstance(node.func, ast.Name):
             if node.func.id in ['eval', 'exec']:
                 self.vulnerabilities.append({
@@ -25,6 +26,7 @@ class AegisScanner(ast.NodeVisitor):
                     'msg': f'Critical: Use of {node.func.id}() allows arbitrary code execution.'
                 })
 
+        # 2. Command Injection (os.system, subprocess)
         if isinstance(node.func, ast.Attribute):
             if node.func.attr in ['system', 'popen']:
                 self.vulnerabilities.append({
@@ -33,6 +35,19 @@ class AegisScanner(ast.NodeVisitor):
                     'severity': 'CRITICAL',
                     'msg': f'Command Injection Risk: {node.func.attr}() executed with unverified string.'
                 })
+
+            # 3. SQL Injection Detection (execute, query with f-strings or bin op +)
+            if node.func.attr in ['execute', 'query']:
+                if node.args:
+                    arg = node.args[0]
+                    # Check if argument is an f-string or binary addition (string concatenation)
+                    if isinstance(arg, ast.JoinedStr) or isinstance(arg, ast.BinOp):
+                        self.vulnerabilities.append({
+                            'type': 'SQL_INJECTION',
+                            'line': node.lineno,
+                            'severity': 'CRITICAL',
+                            'msg': f'SQL Injection Risk: {node.func.attr}() called with concatenated string or f-string.'
+                        })
 
         self.generic_visit(node)
 
