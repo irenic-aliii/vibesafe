@@ -1,21 +1,20 @@
 """
 VibeSafe PyPI Dependency Auditor
-Detects AI-Hallucinated Package Names (AI Slopsquatting) and Supply Chain Risks
+Detects AI-Hallucinated Package Names (AI Slopsquatting) and Supply Chain Risks.
+High-efficiency concurrent auditing with in-memory caching.
 """
 import re
 import requests
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# Local cache to prevent redundant network requests and improve performance
+# Process-wide in-memory cache to prevent duplicate network roundtrips
 _PYPI_CACHE = {}
 
 def clean_package_name(raw_line):
     """
-    Extracts the canonical package name from a requirements.txt entry line.
-    Handles version specifiers, extras, environment markers, and comments.
-    Examples:
-      'requests>=2.31.0' -> 'requests'
-      'urllib3[socks] < 2.0' -> 'urllib3'
-      'flask-cors ~= 3.0.10; python_version > "3.8"' -> 'flask-cors'
+    Extracts canonical package name from a requirements.txt entry line.
+    Handles version specifiers (==, >=, <=, ~=, !=, <, >), extras ([socks]),
+    environment markers (; sys_platform == 'linux'), and comments (# ...).
     """
     if not raw_line:
         return None
@@ -24,16 +23,15 @@ def clean_package_name(raw_line):
     if not line:
         return None
 
-    # Strip environment markers (e.g. ; sys_platform == 'win32')
+    # Strip environment markers
     line = line.split(';')[0].strip()
 
-    # Extract package name before any version specifier or bracketed extra
+    # Match package identifier
     match = re.match(r'^([a-zA-Z0-9_.\-]+)', line)
     if not match:
         return None
 
     name = match.group(1).strip()
-    # Strip trailing bracket if extra was part of the regex
     name = name.split('[')[0].strip()
     return name if name else None
 
@@ -51,10 +49,14 @@ def check_pypi_package(package_name, session=None):
         return _PYPI_CACHE[normalized_key]
 
     url = f"https://pypi.org/pypi/{clean_name}/json"
-    http = session or requests
+    headers = {'User-Agent': 'VibeSafe-SupplyChain-Auditor/1.0'}
 
     try:
-        response = http.get(url, timeout=3.5, headers={'User-Agent': 'VibeSafe-SupplyChain-Auditor/1.0'})
+        if session:
+            response = session.get(url, timeout=3.5, headers=headers)
+        else:
+            response = requests.get(url, timeout=3.5, headers=headers)
+
         if response.status_code == 200:
             data = response.json()
             info = data.get('info', {})
@@ -116,30 +118,61 @@ def check_pypi_package(package_name, session=None):
     _PYPI_CACHE[normalized_key] = result
     return result
 
-def audit_requirements_text(req_text):
+def audit_requirements_text(req_text, max_workers=5):
     """
-    Audits a multi-line requirements.txt text block against PyPI.
-    Returns: list of package audit dictionaries.
+    Audits requirements dependencies against PyPI concurrently.
+    Preserves original manifest order in returned results.
     """
     if not req_text or not req_text.strip():
         return []
 
     lines = req_text.strip().splitlines()
-    results = []
+    unique_packages = []
     seen = set()
 
-    session = requests.Session()
     for line in lines:
         cleaned = clean_package_name(line)
         if not cleaned:
             continue
         norm = cleaned.lower().replace('_', '-')
-        if norm in seen:
-            continue
-        seen.add(norm)
+        if norm not in seen:
+            seen.add(norm)
+            unique_packages.append(line)
 
-        res = check_pypi_package(line, session=session)
-        if res:
-            results.append(res)
+    if not unique_packages:
+        return []
+
+    results_by_pkg = {}
+    session = requests.Session()
+
+    # Fast path: check how many are already in cache
+    uncached = [p for p in unique_packages if clean_package_name(p).lower().replace('_', '-') not in _PYPI_CACHE]
+
+    if uncached:
+        # Run concurrent lookups for uncached items
+        workers = min(len(uncached), max_workers)
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = {executor.submit(check_pypi_package, pkg, session): pkg for pkg in uncached}
+            for future in as_completed(futures):
+                try:
+                    res = future.result()
+                    if res:
+                        results_by_pkg[res['package'].lower().replace('_', '-')] = res
+                except Exception:
+                    pass
+
+    # Build final results in exact input order
+    results = []
+    for pkg_line in unique_packages:
+        cname = clean_package_name(pkg_line).lower().replace('_', '-')
+        if cname in results_by_pkg:
+            results.append(results_by_pkg[cname])
+        elif cname in _PYPI_CACHE:
+            results.append(_PYPI_CACHE[cname])
+        else:
+            # Fallback direct lookup
+            res = check_pypi_package(pkg_line, session)
+            if res:
+                results.append(res)
 
     return results

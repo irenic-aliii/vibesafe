@@ -1,161 +1,494 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VibeSafe — The Security Compiler for AI-Generated Code</title>
+    <title>VibeSafe — Deterministic Security Compiler for AI-Generated Python</title>
+    <meta name="description" content="Deterministic AST security scanner, live PyPI supply-chain auditor, and closed-loop automated patch verification for AI-generated code.">
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.0/umd/lucide.min.js"></script>
     <style>
         :root {
-            --bg: #0F172A;
-            --fg: #F8FAFC;
-            --card: #1B2336;
-            --primary: #1E293B;
-            --accent: #22C55E;
-            --muted: #272F42;
-            --border: #475569;
-            --destructive: #EF4444;
+            --color-bg:           #0B1120;
+            --color-card:         #151F32;
+            --color-card-elevated:#1E293B;
+            --color-muted:        #243048;
+            --color-border:       #334155;
+            --color-fg:           #F8FAFC;
+            --color-fg-muted:     #CBD5E1;
+            --color-fg-subtle:    #94A3B8;
+            --color-accent:       #22C55E;
+            --color-accent-dim:   rgba(34,197,94,0.12);
+            --color-accent-border:rgba(34,197,94,0.30);
+            --color-danger:       #EF4444;
+            --color-danger-dim:   rgba(239,68,68,0.14);
+            --color-danger-border:rgba(239,68,68,0.35);
+            --color-warning:      #F59E0B;
+            --color-warning-dim:  rgba(245,158,11,0.14);
+            --color-warning-border:rgba(245,158,11,0.35);
+            --color-indigo:       #818CF8;
+            --color-indigo-dim:   rgba(129,140,248,0.14);
+            --color-indigo-border:rgba(129,140,248,0.35);
         }
-        body { font-family: 'IBM Plex Sans', sans-serif; background-color: var(--bg); color: var(--fg); }
-        .font-mono { font-family: 'JetBrains Mono', monospace; }
-        .glass-panel { background: var(--card); border: 1px solid var(--border); }
-        .hero-gradient { background: radial-gradient(circle at top center, rgba(34, 197, 94, 0.15) 0%, transparent 70%); }
-        /* Custom Scrollbar */
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-fg);
+            overflow: hidden;
+        }
+
+        /* ── Accessibility: Keyboard Focus Indicator (WCAG 2.2 AA) ── */
+        :focus-visible {
+            outline: 2px solid #22C55E !important;
+            outline-offset: 2px !important;
+            border-radius: 4px;
+        }
+
+        /* ── Accessibility: Skip to Content Link ── */
+        .skip-link {
+            position: absolute;
+            top: -100px;
+            left: 16px;
+            background: #22C55E;
+            color: #0B1120;
+            padding: 8px 16px;
+            font-weight: 700;
+            font-size: 13px;
+            z-index: 9999;
+            border-radius: 6px;
+            transition: top 150ms ease;
+            text-decoration: none;
+        }
+        .skip-link:focus {
+            top: 12px;
+        }
+
+        /* ── Accessibility: Screen Reader Only Utility ── */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* ── Typography & Fonts ── */
+        .font-mono { font-family: 'JetBrains Mono', Consolas, Monaco, monospace; }
+
+        /* ── Custom Scrollbars ── */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
-        button, a, [role="button"] { cursor: pointer; }
-        .drag-over { border-color: var(--accent) !important; background: rgba(34, 197, 94, 0.05) !important; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* ── App Grid Shell ── */
+        #app-shell {
+            display: grid;
+            grid-template-rows: 52px 1fr;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #top-navigation {
+            background: #070B14;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 50;
+        }
+
+        #workspace-body {
+            display: grid;
+            grid-template-columns: 52px 1fr;
+            overflow: hidden;
+        }
+
+        #sidebar-nav {
+            background: #070B14;
+            border-right: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px 0;
+            gap: 6px;
+        }
+
+        #workbench-grid {
+            display: grid;
+            grid-template-columns: 340px 1fr 310px;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border-right: 1px solid var(--color-border);
+            background: var(--color-bg);
+        }
+        .panel:last-child { border-right: none; }
+
+        .panel-header {
+            height: 44px;
+            min-height: 44px;
+            background: #0E1626;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            flex-shrink: 0;
+        }
+
+        .panel-body {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* ── Button Tokens ── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 6px 13px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+            white-space: nowrap;
+            min-height: 32px;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--color-accent);
+            color: #0B1120;
+            border-color: var(--color-accent);
+        }
+        .btn-primary:not(:disabled):hover {
+            background: #16A34A;
+            border-color: #16A34A;
+        }
+
+        .btn-secondary {
+            background: var(--color-card-elevated);
+            color: var(--color-fg);
+            border-color: var(--color-border);
+        }
+        .btn-secondary:not(:disabled):hover {
+            background: var(--color-muted);
+            border-color: #64748B;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--color-fg-muted);
+            border-color: transparent;
+        }
+        .btn-ghost:not(:disabled):hover {
+            background: var(--color-muted);
+            color: var(--color-fg);
+        }
+
+        /* ── Sidebar Nav Item ── */
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-fg-subtle);
+            background: transparent;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 150ms ease;
+        }
+        .nav-btn:hover {
+            background: var(--color-card);
+            color: var(--color-fg);
+        }
+        .nav-btn.active {
+            background: var(--color-accent-dim);
+            color: var(--color-accent);
+            border-color: var(--color-accent-border);
+        }
+
+        /* ── Textarea ── */
+        .code-textarea {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            color: var(--color-fg);
+            font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+            font-size: 12px;
+            line-height: 1.65;
+            border: none;
+            outline: none;
+            resize: none;
+            padding: 14px 16px;
+            tab-size: 4;
+        }
+
+        /* ── Badges ── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            letter-spacing: 0.04em;
+        }
+        .badge-critical {
+            background: var(--color-danger-dim);
+            color: #F87171;
+            border: 1px solid var(--color-danger-border);
+        }
+        .badge-high {
+            background: var(--color-warning-dim);
+            color: #FBBF24;
+            border: 1px solid var(--color-warning-border);
+        }
+        .badge-clean {
+            background: var(--color-accent-dim);
+            color: #4ADE80;
+            border: 1px solid var(--color-accent-border);
+        }
+        .badge-neutral {
+            background: var(--color-muted);
+            color: var(--color-fg-muted);
+            border: 1px solid var(--color-border);
+        }
+
+        /* ── Finding Cards ── */
+        .finding-item {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            background: var(--color-card);
+            margin-bottom: 8px;
+            transition: border-color 150ms ease;
+        }
+        .finding-item.is-critical {
+            border-color: var(--color-danger-border);
+            background: rgba(239,68,68,0.06);
+        }
+        .finding-item.is-high {
+            border-color: var(--color-warning-border);
+            background: rgba(245,158,11,0.06);
+        }
+
+        /* ── Diff Lines ── */
+        .diff-row {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            line-height: 1.6;
+            padding: 1px 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .diff-row.del {
+            background: rgba(239,68,68,0.14);
+            color: #FCA5A5;
+            text-decoration: none;
+        }
+        .diff-row.add {
+            background: rgba(34,197,94,0.12);
+            color: #86EFAC;
+        }
+        .diff-row.meta {
+            background: rgba(129,140,248,0.10);
+            color: #A5B4FC;
+        }
+        .diff-row.ctx {
+            color: #94A3B8;
+        }
+
+        /* ── Check Rows ── */
+        .check-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--color-border);
+            background: #0E1626;
+            font-size: 11px;
+            transition: all 150ms ease;
+        }
+        .check-item.verified {
+            border-color: var(--color-accent-border);
+            background: var(--color-accent-dim);
+        }
+
+        /* ── Drag & Drop Over ── */
+        .drag-active {
+            border-color: var(--color-accent) !important;
+            background: var(--color-accent-dim) !important;
+        }
+
+        /* ── Accessibility: Reduced Motion ── */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-300 selection:bg-emerald-500 selection:text-white overflow-x-hidden">
+<body>
 
-    <!-- Section 1: SaaS Hero -->
-    <section class="min-h-screen flex flex-col items-center justify-center relative hero-gradient px-6 py-20 text-center">
-        <!-- Floating Header -->
-        <header class="fixed top-0 left-0 right-0 h-16 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between px-8 z-[100]">
+    <!-- Accessible Skip Link -->
+    <a href="#main-workspace" class="skip-link">Skip to main workbench content</a>
+
+    <!-- Screen Reader Live Announcements -->
+    <div id="sr-live-region" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+    <div id="app-shell">
+
+        <!-- ═════════════════════════════════════════════════════════
+             TOP HEADER / APPLICATION BAR
+        ══════════════════════════════════════════════════════════ -->
+        <header id="top-navigation" role="banner">
+            <!-- Brand & Tagline -->
             <div class="flex items-center space-x-3">
-                <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-950/50">
-                    <i data-lucide="shield-check" class="w-5 h-5 text-white"></i>
+                <div class="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center text-slate-950 font-bold" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <polyline points="9 12 11 14 15 10"/>
+                    </svg>
                 </div>
-                <h1 class="font-bold text-lg tracking-tight text-white uppercase">VibeSafe</h1>
-            </div>
-            <div class="hidden md:flex items-center space-x-8 text-sm font-medium text-slate-400">
-                <a href="#" class="hover:text-emerald-400 transition">Product</a>
-                <a href="#" class="hover:text-emerald-400 transition">Security</a>
-                <a href="#" class="hover:text-emerald-400 transition">Enterprise</a>
-                <a href="#control-plane" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition">Launch App</a>
-            </div>
-        </header>
-
-        <div class="max-w-4xl space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono font-medium">
-                <span class="relative flex h-2 w-2">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span>Deterministic Security Engine v3.2</span>
-            </div>
-            <h2 class="text-5xl md:text-7xl font-bold text-white tracking-tight leading-[1.1]">
-                The Security Compiler for <br class="hidden md:block" />
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">AI-Generated Code.</span>
-            </h2>
-            <p class="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
-                Vibe-coding is fast. It is also insecure. <span class="text-white font-medium">VibeSafe</span> deterministically audits and auto-patches your AI-generated code before deployment.
-            </p>
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-                <a href="#control-plane" class="px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition shadow-xl shadow-emerald-950/40 flex items-center gap-2 group">
-                    Enter the Control Plane
-                    <i data-lucide="arrow-down" class="w-5 h-5 group-hover:translate-y-1 transition"></i>
-                </a>
-                <button class="px-8 py-4 bg-slate-900 border border-slate-800 hover:border-slate-700 text-white font-bold rounded-xl transition">
-                    View Security Manifesto
-                </button>
-            </div>
-        </div>
-
-        <!-- Hero Preview Mockup -->
-        <div class="mt-20 w-full max-w-6xl mx-auto rounded-2xl border border-slate-800 bg-slate-900/50 p-4 shadow-2xl relative">
-            <div class="absolute inset-0 bg-emerald-500/5 blur-3xl rounded-full"></div>
-            <div class="relative bg-slate-950 rounded-xl border border-slate-800 h-[400px] overflow-hidden flex flex-col shadow-inner">
-                <div class="h-10 border-b border-slate-800 flex items-center px-4 space-x-2">
-                    <div class="w-3 h-3 rounded-full bg-slate-800"></div>
-                    <div class="w-3 h-3 rounded-full bg-slate-800"></div>
-                    <div class="w-3 h-3 rounded-full bg-slate-800"></div>
-                </div>
-                <div class="flex-1 flex items-center justify-center font-mono text-sm text-slate-600">
-                    <div class="space-y-2">
-                        <div class="flex items-center gap-4"><span class="text-emerald-500">1</span> <span>import os</span></div>
-                        <div class="flex items-center gap-4"><span class="text-emerald-500">2</span> <span class="bg-rose-500/20 text-rose-400 px-1 rounded">- API_KEY = "sk_live_..."</span></div>
-                        <div class="flex items-center gap-4"><span class="text-emerald-500">3</span> <span class="bg-emerald-500/20 text-emerald-400 px-1 rounded">+ API_KEY = os.environ.get("API_KEY")</span></div>
-                        <div class="flex items-center gap-4"><span class="text-emerald-500">4</span> <span>...</span></div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <h1 class="font-bold text-sm tracking-tight text-white uppercase font-mono">VibeSafe</h1>
+                        <span class="badge badge-clean">v3.9 AST</span>
                     </div>
+                    <p class="text-[11px] text-slate-400">Security Compiler & Verification Engine for AI Code</p>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <!-- Section 2: The Core App (The Control Plane) -->
-    <section id="control-plane" class="h-screen flex flex-col bg-slate-950 relative z-10 border-t border-slate-800">
-
-        <!-- App Header (Internal) -->
-        <header class="h-14 bg-slate-900 border-b border-slate-800 px-6 flex items-center justify-between shrink-0">
-            <div class="flex items-center space-x-4">
-                <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Active Workspace</span>
-                <div class="h-4 w-px bg-slate-800"></div>
-                <div class="flex items-center gap-2 text-xs font-mono text-emerald-400 bg-emerald-500/5 px-3 py-1 rounded-full border border-emerald-500/10">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    AST Engine Ready
-                </div>
-            </div>
-            <div class="flex items-center space-x-3">
-                <button onclick="showMode('scanner')" id="btn-mode-scanner" class="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold transition">Scanner</button>
-                <button onclick="showMode('auditor')" id="btn-mode-auditor" class="px-3 py-1.5 rounded-lg text-slate-500 hover:text-white text-xs font-bold transition">Auditor</button>
-            </div>
-        </header>
-
-        <!-- Main IDE Grid -->
-        <main class="flex-1 flex overflow-hidden">
-
-            <!-- SIDEBAR NAV (Mini) -->
-            <nav class="w-[60px] bg-slate-900 border-r border-slate-800 flex flex-col items-center py-6 space-y-8 shrink-0">
-                <button class="text-emerald-500"><i data-lucide="layout-grid" class="w-6 h-6"></i></button>
-                <button class="text-slate-600 hover:text-slate-400 transition"><i data-lucide="history" class="w-6 h-6"></i></button>
-                <button class="text-slate-600 hover:text-slate-400 transition"><i data-lucide="shield" class="w-6 h-6"></i></button>
-                <div class="flex-1"></div>
-                <button class="text-slate-600 hover:text-slate-400 transition"><i data-lucide="settings-2" class="w-6 h-6"></i></button>
+            <!-- View Mode Switcher (Tablist) -->
+            <nav role="tablist" aria-label="Main Application Views" class="flex items-center space-x-1 bg-slate-900/80 p-1 rounded-lg border border-slate-800">
+                <button role="tab" id="tab-scanner" aria-selected="true" aria-controls="view-scanner" onclick="switchView('scanner')" class="btn btn-primary text-xs">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                    <span>AST Scanner & Patcher</span>
+                </button>
+                <button role="tab" id="tab-auditor" aria-selected="false" aria-controls="view-auditor" onclick="switchView('auditor')" class="btn btn-ghost text-xs">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    <span>PyPI Dependency Auditor</span>
+                </button>
+                <button role="tab" id="tab-logs" aria-selected="false" aria-controls="view-logs" onclick="switchView('logs')" class="btn btn-ghost text-xs">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    <span>Audit Logs</span>
+                </button>
             </nav>
 
-            <!-- SCANNER VIEW -->
-            <div id="scanner-view" class="flex-1 grid grid-cols-12 overflow-hidden">
+            <!-- Quick Preset Selector for Hackathon Reviewers -->
+            <div class="flex items-center space-x-3">
+                <label for="sample-selector" class="text-xs text-slate-400 font-medium">Quick Test:</label>
+                <select id="sample-selector" onchange="loadPresetSample(this.value)" class="bg-slate-900 border border-slate-700 text-slate-200 text-xs rounded-md px-2 py-1.5 focus:border-emerald-500 focus:outline-none" aria-label="Select sample Python code for testing">
+                    <option value="default">Vibe-Coded Backend (All 4 Flaws)</option>
+                    <option value="sqli">SQL Injection via f-string</option>
+                    <option value="cmd">Command Injection (os.system)</option>
+                    <option value="eval">Arbitrary Code Execution (eval)</option>
+                    <option value="secret">Hardcoded API Secret</option>
+                    <option value="clean">Clean Python Code (0 Flaws)</option>
+                </select>
 
-                <!-- LEFT PANE: Editor & File Upload -->
-                <section class="col-span-4 h-full border-r border-slate-800 flex flex-col bg-slate-900/50">
-                    <div class="h-12 px-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-950/40">
-                        <span class="text-xs font-bold text-slate-400 flex items-center gap-2">
-                            <i data-lucide="terminal" class="w-4 h-4"></i> SOURCE_EDITOR
-                        </span>
-                        <button onclick="runScan()" class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-bold transition shadow-lg shadow-emerald-950/20">Scan Code</button>
-                    </div>
+                <!-- Engine Health Pill -->
+                <div class="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-mono" id="health-pill" role="status" aria-label="Engine status: ready">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500" aria-hidden="true"></span>
+                    <span id="health-text">ENGINE ONLINE</span>
+                </div>
+            </div>
+        </header>
 
-                    <!-- File Drop Zone -->
-                    <div id="drop-zone" class="p-4 border-b border-slate-800">
-                        <div class="border-2 border-dashed border-slate-700 rounded-xl p-6 flex flex-col items-center justify-center gap-2 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition cursor-pointer relative group">
-                            <input type="file" id="file-input" class="absolute inset-0 opacity-0 cursor-pointer" accept=".py,.txt,.js,.json">
-                            <i data-lucide="cloud-upload" class="w-8 h-8 text-slate-500 group-hover:text-emerald-400 transition"></i>
-                            <div class="text-center">
-                                <p class="text-xs font-bold text-slate-300">Drop Python file to audit</p>
-                                <p class="text-[10px] text-slate-500 mt-1">Extract text for security compilation</p>
+        <!-- ═════════════════════════════════════════════════════════
+             MAIN WORKBENCH
+        ══════════════════════════════════════════════════════════ -->
+        <div id="workspace-body">
+
+            <!-- Sidebar Navigation Icons -->
+            <aside id="sidebar-nav" aria-label="Sidebar shortcuts">
+                <button type="button" class="nav-btn active" id="nav-btn-scanner" onclick="switchView('scanner')" aria-label="Switch to AST Scanner view" title="AST Scanner & Patcher">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                </button>
+                <button type="button" class="nav-btn" id="nav-btn-auditor" onclick="switchView('auditor')" aria-label="Switch to Dependency Auditor view" title="PyPI Dependency Auditor">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                </button>
+                <button type="button" class="nav-btn" id="nav-btn-logs" onclick="switchView('logs')" aria-label="Switch to Audit History Logs" title="Audit Logs">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </button>
+                <div class="flex-1" aria-hidden="true"></div>
+                <button type="button" class="nav-btn" onclick="exportMarkdownPatch()" aria-label="Export Remediation Patch Report" title="Export Markdown Patch">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </button>
+            </aside>
+
+            <!-- Main Content Container -->
+            <main id="main-workspace" role="main" class="overflow-hidden">
+
+                <!-- ═════════════════════════════════════════════════
+                     VIEW 1: AST SCANNER & REMEDIATION (3 PANES)
+                ══════════════════════════════════════════════════ -->
+                <div id="view-scanner" role="tabpanel" aria-labelledby="tab-scanner" class="h-full">
+                    <div id="workbench-grid">
+
+                        <!-- LEFT PANE: SOURCE EDITOR & FILE UPLOAD -->
+                        <section class="panel" aria-labelledby="header-editor">
+                            <div class="panel-header">
+                                <h2 id="header-editor" class="text-xs font-bold text-slate-300 font-mono flex items-center gap-2">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                                    <span>SOURCE_CODE_EDITOR</span>
+                                </h2>
+                                <button type="button" id="btn-scan" onclick="triggerScan()" class="btn btn-primary" aria-label="Scan code for AST vulnerabilities (Ctrl+Enter)">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                    <span>Scan AST</span>
+                                </button>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Editor -->
-                    <div class="flex-1 relative">
-                        <textarea id="code-input" class="absolute inset-0 w-full h-full bg-slate-950 p-6 text-slate-300 font-mono text-xs leading-relaxed resize-none focus:outline-none focus:ring-1 focus:ring-emerald-500/30 transition" spellcheck="false">import os
+                            <!-- File Upload Area -->
+                            <div class="p-3 border-b border-slate-800" id="drop-area">
+                                <label for="file-upload-input" class="block border-2 border-dashed border-slate-700 hover:border-emerald-500/60 rounded-lg p-3 text-center cursor-pointer transition bg-slate-900/40">
+                                    <input type="file" id="file-upload-input" accept=".py,.pyw,.txt,.json" class="sr-only" aria-describedby="upload-help-text">
+                                    <div class="flex items-center justify-center space-x-2 text-xs text-slate-300">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-400" aria-hidden="true">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                                        </svg>
+                                        <span id="file-upload-label" class="font-medium">Drop Python file to audit</span>
+                                    </div>
+                                    <p id="upload-help-text" class="text-[11px] text-slate-400 mt-1">Accepts .py source files or .txt manifests (max 4MB)</p>
+                                </label>
+                            </div>
+
+                            <!-- Source Code Input -->
+                            <div class="flex-1 relative overflow-hidden">
+                                <label for="code-input-area" class="sr-only">Python Source Code Input</label>
+                                <textarea id="code-input-area" class="code-textarea" spellcheck="false" placeholder="# Paste Python source code here..." aria-label="Python source code input">import os
 import sqlite3
 
 API_KEY = 'sk_live_99812739182739182739'
@@ -166,167 +499,362 @@ def execute_query(user_input):
     cursor = conn.cursor()
     cursor.execute(query)
     os.system("echo " + user_input)
+    val = eval(user_input)
     return cursor.fetchall()</textarea>
-                    </div>
+                            </div>
 
-                    <div class="h-10 px-4 bg-slate-950/60 border-t border-slate-800 flex items-center justify-between text-[10px] font-mono text-slate-500 shrink-0">
-                        <span id="scan-status-text">IDLE: WAITING FOR INPUT</span>
-                        <span>PY_AST_3.11</span>
-                    </div>
-                </section>
+                            <!-- Editor Footer Status -->
+                            <div class="h-8 bg-slate-950 px-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400 shrink-0">
+                                <span id="editor-status-text">STATUS: READY</span>
+                                <span>PARSER: PYTHON_3_AST</span>
+                            </div>
+                        </section>
 
-                <!-- CENTER PANE: Patching Engine -->
-                <section class="col-span-5 h-full border-r border-slate-800 flex flex-col bg-slate-900/30">
-                    <div class="h-12 px-6 border-b border-slate-800 flex items-center justify-between bg-slate-950/40 shrink-0">
-                        <h2 class="text-xs font-bold text-slate-400 flex items-center gap-2">
-                            <i data-lucide="cpu" class="w-4 h-4"></i> PATCH_COMPILER
-                        </h2>
-                        <button id="remediate-btn" onclick="runAutonomousRemediation()" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg transition shadow-lg shadow-emerald-950/30 flex items-center gap-2 group">
-                            <i data-lucide="zap" class="w-3.5 h-3.5 group-hover:animate-pulse"></i> Remediate AST
-                        </button>
-                    </div>
-
-                    <div class="p-6 flex-1 flex flex-col gap-6 overflow-y-auto">
-                        <div class="flex items-center justify-between shrink-0">
-                            <h3 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                                <i data-lucide="git-compare" class="w-3.5 h-3.5 text-emerald-500"></i> Deterministic Patch Preview
-                            </h3>
-                            <span id="diff-status" class="px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 text-[10px] font-mono border border-slate-700">Waiting</span>
-                        </div>
-
-                        <!-- Mock GitHub-Style Diff -->
-                        <div class="flex-1 flex flex-col rounded-xl overflow-hidden border border-slate-800 bg-slate-950 shadow-2xl">
-                            <div class="h-8 bg-slate-900 border-b border-slate-800 flex items-center px-4 justify-between">
-                                <span class="text-[10px] font-mono text-slate-500">vulnerable_auth.py (diff)</span>
-                                <div class="flex items-center gap-1.5">
-                                    <span class="w-2 h-2 rounded-full bg-rose-500/50"></span>
-                                    <span class="w-2 h-2 rounded-full bg-emerald-500/50"></span>
+                        <!-- CENTER PANE: DETERMINISTIC PATCH COMPILER & DIFF -->
+                        <section class="panel" aria-labelledby="header-patcher">
+                            <div class="panel-header">
+                                <h2 id="header-patcher" class="text-xs font-bold text-slate-300 font-mono flex items-center gap-2">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                                    <span>PATCH_COMPILER &amp; PROOF</span>
+                                </h2>
+                                <div class="flex items-center space-x-2">
+                                    <span id="patch-status-badge" class="badge badge-neutral">WAITING</span>
+                                    <button type="button" id="btn-remediate" onclick="triggerRemediation()" class="btn btn-primary" aria-label="Run autonomous remediation loop and re-scan">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                        <span>Auto-Patch &amp; Verify</span>
+                                    </button>
                                 </div>
                             </div>
-                            <div id="diff-right" class="flex-1 p-6 font-mono text-xs overflow-y-auto leading-relaxed">
-                                <div class="text-slate-600 text-center py-20 italic">
-                                    Run remediation to generate security patches...
+
+                            <div class="panel-body p-4 flex flex-col space-y-4" id="diff-output-container">
+                                <div class="flex-1 flex flex-col items-center justify-center text-center p-8 border border-dashed border-slate-800 rounded-xl bg-slate-900/20">
+                                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-600 mb-2" aria-hidden="true">
+                                        <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/>
+                                    </svg>
+                                    <p class="text-xs font-mono text-slate-400 font-semibold uppercase tracking-wider">Awaiting Remediation Loop</p>
+                                    <p class="text-[12px] text-slate-400 mt-1 max-w-sm">Click "Auto-Patch &amp; Verify" to compile deterministic fixes and inspect the unified diff with zero line-drift.</p>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </section>
 
-                <!-- RIGHT PANE: Telemetry -->
-                <section class="col-span-3 h-full flex flex-col bg-slate-950">
-                    <div class="h-12 px-4 border-b border-slate-800 flex items-center bg-slate-950/40 shrink-0">
-                        <span class="text-xs font-bold text-slate-300 flex items-center gap-2">
-                            <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i> LIVE_TELEMETRY
-                        </span>
-                    </div>
-
-                    <div id="telemetry-container" class="flex-1 p-4 space-y-4 overflow-y-auto">
-                        <div class="text-center py-12">
-                            <i data-lucide="shield-alert" class="w-8 h-8 text-slate-700 mx-auto mb-2"></i>
-                            <p class="text-[10px] text-slate-600 font-mono uppercase tracking-widest">No active audit feed</p>
-                        </div>
-                    </div>
-
-                    <div class="p-4 border-t border-slate-800 bg-slate-900/30 space-y-4 shrink-0">
-                        <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Security Verification</h4>
-                        <div class="space-y-2">
-                            <div id="check-item-1" class="flex items-center justify-between p-3 rounded-lg bg-slate-950 border border-slate-800 group transition">
-                                <span class="text-[11px] text-slate-400 font-medium flex items-center gap-2">
-                                    <i data-lucide="check" class="w-3.5 h-3.5 text-slate-700" id="icon-1"></i> AST Integrity Audit
-                                </span>
-                                <span id="status-1" class="text-[10px] font-mono text-slate-600">Pending</span>
+                            <!-- Copy / Apply Action Bar -->
+                            <div id="diff-actions-bar" class="p-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between hidden">
+                                <span class="text-xs text-slate-400 font-mono" id="diff-meta-label">4 findings resolved</span>
+                                <div class="flex space-x-2">
+                                    <button type="button" onclick="copyPatchedCode()" class="btn btn-secondary text-xs" aria-label="Copy remediated code to clipboard">
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                        <span>Copy Patched Code</span>
+                                    </button>
+                                    <button type="button" onclick="applyPatchedCodeToEditor()" class="btn btn-primary text-xs" aria-label="Apply remediated code back into editor">
+                                        <span>Apply to Editor</span>
+                                    </button>
+                                </div>
                             </div>
-                            <div id="check-item-2" class="flex items-center justify-between p-3 rounded-lg bg-slate-950 border border-slate-800 group transition">
-                                <span class="text-[11px] text-slate-400 font-medium flex items-center gap-2">
-                                    <i data-lucide="check" class="w-3.5 h-3.5 text-slate-700" id="icon-2"></i> Entropy Normalization
-                                </span>
-                                <span id="status-2" class="text-[10px] font-mono text-slate-600">Pending</span>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
+                        </section>
 
-            <!-- AUDITOR VIEW (Hidden) -->
-            <div id="auditor-view" class="hidden flex-1 grid grid-cols-12 overflow-hidden">
-                <!-- Requirements Audit View -->
-                <section class="col-span-5 h-full border-r border-slate-800 flex flex-col bg-slate-900/50">
-                    <div class="h-12 px-4 border-b border-slate-800 flex items-center justify-between shrink-0 bg-slate-950/40">
-                        <span class="text-xs font-bold text-slate-400 flex items-center gap-2">
-                            <i data-lucide="package" class="w-4 h-4"></i> DEPENDENCY_MANIFEST
-                        </span>
-                        <button onclick="runAudit()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-bold transition">Audit PyPI</button>
+                        <!-- RIGHT PANE: LIVE TELEMETRY & VERIFICATION GATES -->
+                        <section class="panel" aria-labelledby="header-telemetry">
+                            <div class="panel-header">
+                                <h2 id="header-telemetry" class="text-xs font-bold text-slate-300 font-mono flex items-center gap-2">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                                    <span>LIVE_TELEMETRY</span>
+                                </h2>
+                                <span id="telemetry-count-badge" class="badge badge-neutral">0 FINDINGS</span>
+                            </div>
+
+                            <!-- Findings Feed -->
+                            <div class="panel-body p-3 overflow-y-auto" id="findings-list-container">
+                                <div class="text-center py-12 text-slate-400">
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-2 text-slate-600" aria-hidden="true">
+                                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                                    </svg>
+                                    <p class="text-xs font-mono">No active scan performed.</p>
+                                    <p class="text-[11px] text-slate-400 mt-1">Execute a scan to view detected patterns.</p>
+                                </div>
+                            </div>
+
+                            <!-- Verification Checklist Gates -->
+                            <div class="p-3 border-t border-slate-800 bg-slate-900/50 shrink-0 space-y-2">
+                                <h3 class="text-[11px] font-bold text-slate-400 font-mono uppercase tracking-wider">Verification Gates</h3>
+                                <div class="space-y-1.5" id="verification-gates-list">
+                                    <div class="check-item" id="gate-syntax">
+                                        <span class="font-medium text-slate-300 flex items-center gap-2">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-500" aria-hidden="true"></span>
+                                            AST Syntactic Integrity
+                                        </span>
+                                        <span class="font-mono text-[10px] text-slate-400" id="gate-syntax-status">UNTESTED</span>
+                                    </div>
+                                    <div class="check-item" id="gate-command">
+                                        <span class="font-medium text-slate-300 flex items-center gap-2">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-500" aria-hidden="true"></span>
+                                            Command Injection Shield
+                                        </span>
+                                        <span class="font-mono text-[10px] text-slate-400" id="gate-command-status">UNTESTED</span>
+                                    </div>
+                                    <div class="check-item" id="gate-sqli">
+                                        <span class="font-medium text-slate-300 flex items-center gap-2">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-500" aria-hidden="true"></span>
+                                            SQLi Parameterization
+                                        </span>
+                                        <span class="font-mono text-[10px] text-slate-400" id="gate-sqli-status">UNTESTED</span>
+                                    </div>
+                                    <div class="check-item" id="gate-secrets">
+                                        <span class="font-medium text-slate-300 flex items-center gap-2">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-500" aria-hidden="true"></span>
+                                            Entropy &amp; Secrets Gate
+                                        </span>
+                                        <span class="font-mono text-[10px] text-slate-400" id="gate-secrets-status">UNTESTED</span>
+                                    </div>
+                                </div>
+                                <p class="text-[10px] text-slate-400 leading-normal pt-1">
+                                    <strong>Evaluation Note:</strong> Verification checks apply strictly to supported AST patterns. Clean results confirm absence of detected constructs.
+                                </p>
+                            </div>
+                        </section>
+
                     </div>
-                    <textarea id="reqs-input" class="flex-1 bg-slate-950 p-6 text-slate-300 font-mono text-xs leading-relaxed resize-none focus:outline-none" spellcheck="false">requests
+                </div>
+
+                <!-- ═════════════════════════════════════════════════
+                     VIEW 2: PYPI DEPENDENCY AUDITOR (2 PANES)
+                ══════════════════════════════════════════════════ -->
+                <div id="view-auditor" role="tabpanel" aria-labelledby="tab-auditor" class="h-full hidden">
+                    <div class="grid grid-cols-12 h-full overflow-hidden">
+
+                        <!-- Left: Manifest Input -->
+                        <section class="col-span-5 panel" aria-labelledby="header-manifest">
+                            <div class="panel-header">
+                                <h2 id="header-manifest" class="text-xs font-bold text-slate-300 font-mono flex items-center gap-2">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                                    <span>REQUIREMENTS_MANIFEST</span>
+                                </h2>
+                                <button type="button" onclick="triggerAudit()" class="btn btn-primary" id="btn-audit" aria-label="Audit dependencies against live PyPI registry">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                    <span>Audit PyPI</span>
+                                </button>
+                            </div>
+                            <div class="flex-1 relative">
+                                <label for="reqs-input-area" class="sr-only">Requirements Manifest Text</label>
+                                <textarea id="reqs-input-area" class="code-textarea" spellcheck="false" placeholder="# Paste requirements.txt contents here..." aria-label="Requirements.txt package dependencies">requests>=2.31.0
 astroid
 streamlit
-fake_ai_hallucinated_pkg_xyz123</textarea>
-                </section>
-                <section class="col-span-7 h-full bg-slate-950 flex flex-col overflow-y-auto p-8">
-                    <div class="max-w-3xl space-y-6">
-                        <div>
-                            <h2 class="text-lg font-bold text-white flex items-center gap-3">
-                                <i data-lucide="search-check" class="w-6 h-6 text-indigo-400"></i> AI Slopsquatting Auditor
+fake_ai_hallucinated_pkg_xyz123
+flask-cors ~= 3.0.10</textarea>
+                            </div>
+                            <div class="p-3 bg-slate-950 border-t border-slate-800 text-[11px] text-slate-400">
+                                <strong>AI Slopsquatting Protection:</strong> Queries the live PyPI registry concurrently with caching to catch hallucinated package names before developers execute <code class="text-emerald-400 font-mono">pip install</code>.
+                            </div>
+                        </section>
+
+                        <!-- Right: Live PyPI Audit Results -->
+                        <section class="col-span-7 panel" aria-labelledby="header-audit-results">
+                            <div class="panel-header">
+                                <h2 id="header-audit-results" class="text-xs font-bold text-slate-300 font-mono flex items-center gap-2">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                    <span>PYPI_LIVE_VERIFICATION_FEED</span>
+                                </h2>
+                                <span id="audit-metrics-badge" class="badge badge-neutral">AWAITING AUDIT</span>
+                            </div>
+
+                            <div class="panel-body p-4 space-y-3" id="audit-results-container">
+                                <div class="text-center py-16 text-slate-400">
+                                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-2 text-slate-600" aria-hidden="true">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                                    </svg>
+                                    <p class="text-xs font-mono font-medium">No dependency audit executed yet.</p>
+                                    <p class="text-[12px] text-slate-400 mt-1">Click "Audit PyPI" to verify packages against the live registry.</p>
+                                </div>
+                            </div>
+                        </section>
+
+                    </div>
+                </div>
+
+                <!-- ═════════════════════════════════════════════════
+                     VIEW 3: AUDIT HISTORY LOGS
+                ══════════════════════════════════════════════════ -->
+                <div id="view-logs" role="tabpanel" aria-labelledby="tab-logs" class="h-full hidden">
+                    <section class="panel h-full" aria-labelledby="header-history-logs">
+                        <div class="panel-header">
+                            <h2 id="header-history-logs" class="text-xs font-bold text-slate-300 font-mono flex items-center gap-2">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                <span>SECURE_AUDIT_HISTORY (SQLITE)</span>
                             </h2>
-                            <p class="text-sm text-slate-400 mt-2">Preventing supply-chain attacks from hallucinated packages.</p>
-                        </div>
-                        <div id="audit-results" class="space-y-3">
-                            <div class="p-8 border border-dashed border-slate-800 rounded-2xl text-center">
-                                <p class="text-xs text-slate-500 font-mono uppercase tracking-widest">Execute manifest audit to see results</p>
+                            <div class="flex items-center space-x-2">
+                                <button type="button" onclick="loadAuditLogs()" class="btn btn-secondary text-xs" aria-label="Refresh audit logs">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                    <span>Refresh</span>
+                                </button>
+                                <button type="button" onclick="clearAuditLogs()" class="btn btn-ghost text-xs text-rose-400 hover:text-rose-300" aria-label="Clear all audit history">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                    <span>Clear Logs</span>
+                                </button>
                             </div>
                         </div>
-                    </div>
-                </section>
-            </div>
-        </main>
-    </section>
 
-    <!-- JS LOGIC -->
+                        <!-- Logs Table Header -->
+                        <div class="grid grid-cols-12 bg-slate-900 border-b border-slate-800 px-4 py-2.5 text-[11px] font-mono font-bold text-slate-400">
+                            <span class="col-span-4">TARGET FILE</span>
+                            <span class="col-span-3">SCAN TYPE</span>
+                            <span class="col-span-2 text-center">FINDINGS</span>
+                            <span class="col-span-3 text-right">TIMESTAMP</span>
+                        </div>
+
+                        <!-- Logs Table Content -->
+                        <div class="panel-body divide-y divide-slate-800/60" id="logs-table-body">
+                            <div class="p-8 text-center text-xs text-slate-400 font-mono">
+                                Loading audit log entries...
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════
+         CLIENT APPLICATION LOGIC
+    ══════════════════════════════════════════════════════════ -->
     <script>
-        lucide.createIcons();
+        // Preset code samples for rapid hackathon judge verification
+        const PRESETS = {
+            default: `import os
+import sqlite3
 
-        // 1. Mode Switching
-        function showMode(mode) {
-            const scanner = document.getElementById('scanner-view');
-            const auditor = document.getElementById('auditor-view');
-            const btnScan = document.getElementById('btn-mode-scanner');
-            const btnAudit = document.getElementById('btn-mode-auditor');
+API_KEY = 'sk_live_99812739182739182739'
 
-            if (mode === 'scanner') {
-                scanner.classList.remove('hidden');
-                auditor.classList.add('hidden');
-                btnScan.className = 'px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold transition';
-                btnAudit.className = 'px-3 py-1.5 rounded-lg text-slate-500 hover:text-white text-xs font-bold transition';
-            } else {
-                scanner.classList.add('hidden');
-                auditor.classList.remove('hidden');
-                btnAudit.className = 'px-3 py-1.5 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 text-xs font-bold transition';
-                btnScan.className = 'px-3 py-1.5 rounded-lg text-slate-500 hover:text-white text-xs font-bold transition';
-            }
-            lucide.createIcons();
+def execute_query(user_input):
+    query = f"SELECT * FROM users WHERE name = '{user_input}'"
+    conn = sqlite3.connect('db.sqlite')
+    cursor = conn.cursor()
+    cursor.execute(query)
+    os.system("echo " + user_input)
+    val = eval(user_input)
+    return cursor.fetchall()`,
+
+            sqli: `import sqlite3
+
+def query_user(conn, username):
+    cursor = conn.cursor()
+    # Flaw: String formatting introduces SQL Injection risk
+    cursor.execute(f"SELECT * FROM accounts WHERE username = '{username}'")
+    return cursor.fetchall()`,
+
+            cmd: `import subprocess
+import os
+
+def ping_host(user_supplied_ip):
+    # Flaw: Unquoted shell execution allows command chaining
+    os.system("ping -c 1 " + user_supplied_ip)`,
+
+            eval: `def evaluate_expression(math_input):
+    # Flaw: Direct eval allows arbitrary code execution
+    return eval(math_input)`,
+
+            secret: `API_KEY = 'sk_live_99812739182739182739'
+DB_PASSWORD = 'supersecretproductionpassword123'
+
+def connect():
+    pass`,
+
+            clean: `import os
+import subprocess
+import ast
+
+API_KEY = os.environ.get('API_KEY', '')
+
+def execute_safe(user_input):
+    # Safe subprocess execution without shell=True
+    subprocess.run(['echo', str(user_input)], check=True, shell=False)
+    # Safe literal evaluation
+    val = ast.literal_eval(user_input)
+    return val`
+        };
+
+        let lastPatchedCode = '';
+
+        function announceA11y(message) {
+            const el = document.getElementById('sr-live-region');
+            if (el) el.textContent = message;
         }
 
-        // 2. File Upload Handling
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-input');
-        const codeInput = document.getElementById('code-input');
+        function switchView(viewName) {
+            const views = {
+                scanner: document.getElementById('view-scanner'),
+                auditor: document.getElementById('view-auditor'),
+                logs: document.getElementById('view-logs')
+            };
+            const tabs = {
+                scanner: document.getElementById('tab-scanner'),
+                auditor: document.getElementById('tab-auditor'),
+                logs: document.getElementById('tab-logs')
+            };
+            const navBtns = {
+                scanner: document.getElementById('nav-btn-scanner'),
+                auditor: document.getElementById('nav-btn-auditor'),
+                logs: document.getElementById('nav-btn-logs')
+            };
 
-        fileInput.addEventListener('change', handleFile);
-        dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-        dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); });
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            if (e.dataTransfer.files.length) handleFile({ target: { files: e.dataTransfer.files } });
+            Object.keys(views).forEach(key => {
+                const isActive = (key === viewName);
+                if (views[key]) {
+                    if (isActive) views[key].classList.remove('hidden');
+                    else views[key].classList.add('hidden');
+                }
+                if (tabs[key]) {
+                    tabs[key].setAttribute('aria-selected', isActive ? 'true' : 'false');
+                    tabs[key].className = isActive ? 'btn btn-primary text-xs' : 'btn btn-ghost text-xs';
+                }
+                if (navBtns[key]) {
+                    if (isActive) navBtns[key].classList.add('active');
+                    else navBtns[key].classList.remove('active');
+                }
+            });
+
+            if (viewName === 'logs') {
+                loadAuditLogs();
+            }
+
+            announceA11y(`Switched view to ${viewName}`);
+        }
+
+        function loadPresetSample(presetKey) {
+            const code = PRESETS[presetKey] || PRESETS.default;
+            document.getElementById('code-input-area').value = code;
+            announceA11y(`Loaded sample ${presetKey}`);
+            triggerScan();
+        }
+
+        // File Drag & Drop Handling
+        const dropArea = document.getElementById('drop-area');
+        const fileInput = document.getElementById('file-upload-input');
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                processUploadedFile(e.target.files[0]);
+            }
         });
 
-        async function handleFile(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+        dropArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropArea.classList.add('drag-active');
+        });
 
-            const statusText = document.getElementById('scan-status-text');
-            statusText.innerText = 'STATUS: UPLOADING_TO_SERVER_DB...';
-            statusText.className = 'text-indigo-400 animate-pulse';
+        dropArea.addEventListener('dragleave', () => {
+            dropArea.classList.remove('drag-active');
+        });
+
+        dropArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropArea.classList.remove('drag-active');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                processUploadedFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        async function processUploadedFile(file) {
+            const label = document.getElementById('file-upload-label');
+            label.textContent = `Uploading: ${file.name}...`;
 
             const formData = new FormData();
             formData.append('file', file);
@@ -338,33 +866,38 @@ fake_ai_hallucinated_pkg_xyz123</textarea>
                 });
                 const data = await res.json();
 
-                if (data.error) {
-                    statusText.innerText = 'STATUS: UPLOAD_ERROR';
-                    statusText.className = 'text-rose-500 font-bold';
-                    alert(data.error);
+                if (res.ok) {
+                    label.textContent = `Uploaded: ${data.filename}`;
+                    if (data.file_type === 'requirements') {
+                        document.getElementById('reqs-input-area').value = data.code;
+                        switchView('auditor');
+                        renderAuditResults(data.audit_results || []);
+                    } else {
+                        document.getElementById('code-input-area').value = data.code;
+                        switchView('scanner');
+                        renderFindings(data.vulns || []);
+                        updateVerificationGates(data.vulns || [], false);
+                    }
+                    announceA11y(`File ${data.filename} uploaded and scanned.`);
                 } else {
-                    codeInput.value = data.code;
-                    statusText.innerText = `SAVED TO DB [${data.id.substring(0,6)}]: ${data.vulns.length} VULNS`;
-                    statusText.className = data.vulns.length > 0 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold';
-                    updateTelemetry(data.vulns);
+                    label.textContent = `Error: ${data.error || 'Upload failed'}`;
+                    alert(data.error || 'File upload failed');
                 }
-            } catch (e) {
-                // Fallback to client-side read if offline/error
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    codeInput.value = event.target.result;
-                    runScan();
-                };
-                reader.readAsText(file);
+            } catch (err) {
+                label.textContent = 'Upload network error';
+                console.error(err);
             }
         }
 
-        // 3. Scanner API
-        async function runScan() {
-            const code = codeInput.value;
-            const statusText = document.getElementById('scan-status-text');
-            statusText.innerText = 'STATUS: SCANNING_AST...';
-            statusText.className = 'text-emerald-400 animate-pulse';
+        // Trigger AST Security Scan
+        async function triggerScan() {
+            const code = document.getElementById('code-input-area').value;
+            const btn = document.getElementById('btn-scan');
+            const statusText = document.getElementById('editor-status-text');
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="inline-block animate-spin mr-1">↻</span> Scanning...`;
+            statusText.textContent = 'STATUS: SCANNING_AST...';
 
             try {
                 const res = await fetch('/api/scan', {
@@ -373,137 +906,222 @@ fake_ai_hallucinated_pkg_xyz123</textarea>
                     body: JSON.stringify({ code })
                 });
                 const data = await res.json();
+
                 if (data.error) {
-                    statusText.innerText = 'STATUS: SYNTAX_ERROR';
-                    statusText.className = 'text-rose-500 font-bold';
-                    alert(data.error);
+                    statusText.textContent = `SYNTAX ERROR: ${data.error}`;
+                    renderFindings([]);
+                    document.getElementById('findings-list-container').innerHTML = `
+                        <div class="p-4 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono">
+                            <strong>Syntax Error:</strong> ${escapeHtml(data.error)}
+                        </div>`;
+                    announceA11y(`Scan reported syntax error: ${data.error}`);
                 } else {
-                    statusText.innerText = `STATUS: ${data.vulns.length} VULNERABILITIES DETECTED`;
-                    statusText.className = data.vulns.length > 0 ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold';
-                    updateTelemetry(data.vulns);
+                    const vulns = data.vulns || [];
+                    statusText.textContent = `STATUS: ${vulns.length} FINDINGS DETECTED`;
+                    renderFindings(vulns);
+                    updateVerificationGates(vulns, false);
+                    announceA11y(`Scan complete. Found ${vulns.length} vulnerabilities.`);
                 }
             } catch (e) {
-                statusText.innerText = 'STATUS: SCAN_FAILED';
-                statusText.className = 'text-rose-500 font-bold';
+                statusText.textContent = 'STATUS: SERVER_UNREACHABLE';
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Scan AST</span>`;
             }
         }
 
-        function updateTelemetry(vulns) {
-            const container = document.getElementById('telemetry-container');
-            container.innerHTML = '';
+        function renderFindings(vulns) {
+            const container = document.getElementById('findings-list-container');
+            const countBadge = document.getElementById('telemetry-count-badge');
 
-            if (vulns.length === 0) {
+            if (!vulns || vulns.length === 0) {
+                countBadge.className = 'badge badge-clean';
+                countBadge.textContent = '0 FINDINGS';
                 container.innerHTML = `
-                    <div class="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-center py-10">
-                        <i data-lucide="check-circle" class="w-8 h-8 text-emerald-400 mx-auto mb-3"></i>
-                        <p class="text-xs font-bold text-white uppercase">No Vulnerabilities Found</p>
-                        <p class="text-[10px] text-slate-500 mt-1">Code satisfies deterministic security gates.</p>
-                    </div>
-                `;
-            } else {
-                vulns.forEach(v => {
-                    const color = v.severity === 'CRITICAL' ? 'rose' : 'amber';
-                    const icon = v.severity === 'CRITICAL' ? 'shield-alert' : 'alert-triangle';
-                    container.innerHTML += `
-                        <div class="p-4 rounded-xl bg-${color}-500/5 border border-${color}-500/20 group transition">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="text-[9px] font-bold text-${color}-400 uppercase tracking-widest">${v.type}</span>
-                                <span class="text-[9px] font-mono text-slate-600">LN:${v.line}</span>
-                            </div>
-                            <p class="text-xs font-bold text-slate-200">${v.msg}</p>
-                            <div class="mt-3 flex items-center gap-2">
-                                <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                                    <div class="h-full bg-${color}-500 w-full animate-in slide-in-from-left duration-1000"></div>
-                                </div>
-                                <span class="text-[9px] font-bold text-${color}-500 uppercase">${v.severity}</span>
-                            </div>
-                        </div>
-                    `;
-                });
+                    <div class="p-6 text-center rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-emerald-400">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-2" aria-hidden="true">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                            <polyline points="9 12 11 14 15 10"/>
+                        </svg>
+                        <p class="text-xs font-bold font-mono">CLEAN: 0 FINDINGS REPORTED</p>
+                        <p class="text-[11px] text-slate-400 mt-1">No dangerous functions, shell injections, or SQL vulnerabilities detected by active AST rules.</p>
+                    </div>`;
+                return;
             }
-            lucide.createIcons();
+
+            countBadge.className = vulns.some(v => v.severity === 'CRITICAL') ? 'badge badge-critical' : 'badge badge-high';
+            countBadge.textContent = `${vulns.length} DETECTED`;
+
+            let html = '';
+            vulns.forEach(v => {
+                const isCrit = v.severity === 'CRITICAL';
+                const cardClass = isCrit ? 'is-critical' : 'is-high';
+                const badgeClass = isCrit ? 'badge-critical' : 'badge-high';
+
+                html += `
+                    <article class="finding-item ${cardClass}" aria-label="Vulnerability finding: ${v.type}">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="badge ${badgeClass}">${v.type}</span>
+                            <span class="font-mono text-[10px] text-slate-400">LINE ${v.line}</span>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-200 mb-1 leading-snug">${escapeHtml(v.msg)}</p>
+                        ${v.snippet ? `<pre class="font-mono text-[11px] bg-slate-950/80 p-1.5 rounded border border-slate-800 text-slate-300 overflow-x-auto my-1"><code>${escapeHtml(v.snippet)}</code></pre>` : ''}
+                        <p class="text-[10px] text-slate-400 mt-1 font-mono">${escapeHtml(v.cwe || '')}</p>
+                    </article>`;
+            });
+
+            container.innerHTML = html;
         }
 
-        // 4. Patching Engine API
-        async function runAutonomousRemediation() {
-            const btn = document.getElementById('remediate-btn');
-            const diffStatus = document.getElementById('diff-status');
-            const code = codeInput.value;
+        // Trigger Autonomous Remediation Loop
+        async function triggerRemediation() {
+            const code = document.getElementById('code-input-area').value;
+            const btn = document.getElementById('btn-remediate');
+            const badge = document.getElementById('patch-status-badge');
+            const actionsBar = document.getElementById('diff-actions-bar');
+            const diffContainer = document.getElementById('diff-output-container');
 
             btn.disabled = true;
-            btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Patching...`;
-            diffStatus.innerText = 'Compiling Patches...';
-            diffStatus.className = 'px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono border border-emerald-500/30 animate-pulse';
+            btn.innerHTML = `<span class="inline-block animate-spin mr-1">↻</span> Compiling Fixes...`;
+            badge.className = 'badge badge-neutral animate-pulse';
+            badge.textContent = 'REMEDIATING';
 
             try {
-                const scanRes = await fetch('/api/scan', {
+                const res = await fetch('/api/remediate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ code })
                 });
-                const scanData = await scanRes.json();
-                const vulns = scanData.vulns || [];
+                const data = await res.json();
 
-                let currentCode = code;
-                for (let v of vulns) {
-                    const patchRes = await fetch('/api/patch', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ code: currentCode, vuln: v })
-                    });
-                    const patchData = await patchRes.json();
-                    currentCode = patchData.patched;
-                }
+                lastPatchedCode = data.patched_code || code;
 
-                document.getElementById('diff-right').innerHTML = `<pre class="text-emerald-400 bg-emerald-500/5 p-4 rounded-lg border border-emerald-500/10 overflow-x-auto">${escapeHtml(currentCode)}</pre>`;
-                codeInput.value = currentCode;
-
-                const finalScanRes = await fetch('/api/scan', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: currentCode })
-                });
-                const finalScanData = await finalScanRes.json();
-                const finalVulns = finalScanData.vulns || [];
-
-                if (finalVulns.length === 0) {
-                    diffStatus.innerText = 'Verified (0 Bugs)';
-                    diffStatus.className = 'px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[10px] font-mono border border-emerald-500/30';
-                    updateChecklist(true);
+                if (data.error && !data.initial_vulns.length) {
+                    badge.className = 'badge badge-critical';
+                    badge.textContent = 'SYNTAX ERROR';
+                    diffContainer.innerHTML = `
+                        <div class="p-4 rounded bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono">
+                            Cannot remediate code with syntax error: ${escapeHtml(data.error)}
+                        </div>`;
+                    announceA11y(`Remediation aborted due to syntax error.`);
                 } else {
-                    diffStatus.innerText = 'Partial Fix';
-                    diffStatus.className = 'px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-400 text-[10px] font-mono border border-amber-500/30';
-                }
+                    renderDiffView(data.diff, data);
+                    renderFindings(data.final_vulns || []);
+                    updateVerificationGates(data.final_vulns || [], data.is_verified);
 
-                btn.disabled = false;
-                btn.innerHTML = `<i data-lucide="check" class="w-3.5 h-3.5"></i> Remediation Applied`;
-                lucide.createIcons();
+                    if (data.is_verified) {
+                        badge.className = 'badge badge-clean';
+                        badge.textContent = 'VERIFIED 0 BUGS';
+                        document.getElementById('diff-meta-label').textContent = `Verification proof: ${data.initial_vulns.length} vulnerabilities reduced to 0.`;
+                        announceA11y(`Remediation verified. All ${data.initial_vulns.length} findings resolved.`);
+                    } else {
+                        badge.className = 'badge badge-high';
+                        badge.textContent = `PARTIAL (${data.final_vulns.length} LEFT)`;
+                        document.getElementById('diff-meta-label').textContent = `Partial fix: ${data.final_vulns.length} finding(s) require manual review.`;
+                    }
+                    actionsBar.classList.remove('hidden');
+                }
             } catch (e) {
+                badge.className = 'badge badge-critical';
+                badge.textContent = 'ERROR';
+            } finally {
                 btn.disabled = false;
-                btn.innerHTML = `Error`;
+                btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span>Auto-Patch &amp; Verify</span>`;
             }
         }
 
-        function updateChecklist(success) {
-            if (!success) return;
-            const items = ['status-1', 'status-2'];
-            items.forEach((id, i) => {
-                const el = document.getElementById(id);
-                const parent = document.getElementById(`check-item-${i+1}`);
-                const icon = document.getElementById(`icon-${i+1}`);
-                el.innerText = 'VERIFIED';
-                el.className = 'text-[10px] font-bold text-emerald-500';
-                parent.className = 'flex items-center justify-between p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20 transition';
-                icon.className = 'w-3.5 h-3.5 text-emerald-500';
+        function renderDiffView(diffText, data) {
+            const container = document.getElementById('diff-output-container');
+
+            if (!diffText || !diffText.trim()) {
+                container.innerHTML = `
+                    <div class="p-6 rounded-lg bg-slate-900 border border-slate-800 text-center">
+                        <p class="text-xs font-bold text-emerald-400 font-mono">NO CODE TRANSFORMATION REQUIRED</p>
+                        <p class="text-xs text-slate-400 mt-1">${escapeHtml(data.message || 'Source code already satisfies all active AST rules.')}</p>
+                    </div>`;
+                return;
+            }
+
+            const lines = diffText.split('\n');
+            let diffHtml = '';
+            lines.forEach(l => {
+                let cls = 'ctx';
+                if (l.startsWith('---') || l.startsWith('+++') || l.startsWith('@@')) cls = 'meta';
+                else if (l.startsWith('-')) cls = 'del';
+                else if (l.startsWith('+')) cls = 'add';
+                diffHtml += `<div class="diff-row ${cls}">${escapeHtml(l) || ' '}</div>`;
             });
-            lucide.createIcons();
+
+            container.innerHTML = `
+                <div class="rounded-lg overflow-hidden border border-slate-800 bg-slate-950 flex flex-col flex-1">
+                    <div class="bg-slate-900 px-3 py-2 border-b border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                        <span>UNIFIED_DIFF (remediated_source.py)</span>
+                        <span class="text-emerald-400 font-semibold">${data.initial_vulns.length} fixed → ${data.final_vulns.length} remaining</span>
+                    </div>
+                    <div class="p-2 overflow-y-auto flex-1 font-mono text-xs">${diffHtml}</div>
+                </div>`;
         }
 
-        // 5. Auditor API
-        async function runAudit() {
-            const requirements = document.getElementById('reqs-input').value;
-            const container = document.getElementById('audit-results');
-            container.innerHTML = '<div class="text-indigo-400 font-mono text-xs animate-pulse p-4">AUDITING_PYPI_MANIFEST...</div>';
+        function updateVerificationGates(vulns, verifiedProof) {
+            const gateSyntax = document.getElementById('gate-syntax');
+            const gateCommand = document.getElementById('gate-command');
+            const gateSqli = document.getElementById('gate-sqli');
+            const gateSecrets = document.getElementById('gate-secrets');
+
+            const hasCmd = vulns.some(v => v.type === 'COMMAND_INJECTION');
+            const hasSqli = vulns.some(v => v.type === 'SQL_INJECTION');
+            const hasSecret = vulns.some(v => v.type === 'HARDCODED_SECRET');
+
+            setGateState(gateSyntax, 'gate-syntax-status', true, 'VALID_AST');
+            setGateState(gateCommand, 'gate-command-status', !hasCmd, hasCmd ? 'FLAGGED' : 'PASSED');
+            setGateState(gateSqli, 'gate-sqli-status', !hasSqli, hasSqli ? 'FLAGGED' : 'PASSED');
+            setGateState(gateSecrets, 'gate-secrets-status', !hasSecret, hasSecret ? 'FLAGGED' : 'PASSED');
+        }
+
+        function setGateState(rowEl, labelId, isPassing, labelText) {
+            const labelEl = document.getElementById(labelId);
+            if (!rowEl || !labelEl) return;
+            if (isPassing) {
+                rowEl.className = 'check-item verified';
+                labelEl.className = 'font-mono text-[10px] text-emerald-400 font-bold';
+                labelEl.textContent = labelText;
+            } else {
+                rowEl.className = 'check-item';
+                labelEl.className = 'font-mono text-[10px] text-rose-400 font-bold';
+                labelEl.textContent = labelText;
+            }
+        }
+
+        function copyPatchedCode() {
+            if (!lastPatchedCode) return;
+            navigator.clipboard.writeText(lastPatchedCode).then(() => {
+                alert('Patched code copied to clipboard!');
+            });
+        }
+
+        function applyPatchedCodeToEditor() {
+            if (!lastPatchedCode) return;
+            document.getElementById('code-input-area').value = lastPatchedCode;
+            triggerScan();
+            announceA11y('Applied patched code into editor.');
+        }
+
+        // Trigger PyPI Dependency Audit
+        async function triggerAudit() {
+            const requirements = document.getElementById('reqs-input-area').value;
+            const btn = document.getElementById('btn-audit');
+            const container = document.getElementById('audit-results-container');
+            const badge = document.getElementById('audit-metrics-badge');
+
+            btn.disabled = true;
+            btn.innerHTML = `<span class="inline-block animate-spin mr-1">↻</span> Auditing PyPI...`;
+            badge.textContent = 'QUERYING PYPI...';
+
+            container.innerHTML = `
+                <div class="p-8 text-center text-indigo-400 font-mono text-xs">
+                    <span class="inline-block animate-spin text-lg mb-2">↻</span>
+                    <p>Executing concurrent package queries against official PyPI registry...</p>
+                </div>`;
 
             try {
                 const res = await fetch('/api/audit', {
@@ -512,46 +1130,144 @@ fake_ai_hallucinated_pkg_xyz123</textarea>
                     body: JSON.stringify({ requirements })
                 });
                 const data = await res.json();
-                container.innerHTML = '';
-
-                data.results.forEach(res => {
-                    const color = res.risk === 'CRITICAL' ? 'rose' : 'emerald';
-                    const icon = res.risk === 'CRITICAL' ? 'shield-off' : 'shield-check';
-                    container.innerHTML += `
-                        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between hover:border-slate-700 transition">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-${color}-500/10 flex items-center justify-center">
-                                    <i data-lucide="${icon}" class="w-6 h-6 text-${color}-400"></i>
-                                </div>
-                                <div>
-                                    <div class="text-sm font-bold text-white">${res.package}</div>
-                                    <div class="text-[10px] text-slate-500 font-mono uppercase tracking-widest">${res.status}</div>
-                                </div>
-                            </div>
-                            <span class="px-3 py-1 rounded-full bg-${color}-500/10 text-${color}-400 border border-${color}-500/20 text-[10px] font-bold uppercase">
-                                ${res.risk}
-                            </span>
-                        </div>
-                    `;
-                });
-                lucide.createIcons();
+                renderAuditResults(data.results || [], data.summary);
             } catch (e) {
-                container.innerHTML = '<div class="text-rose-500 font-mono text-xs p-4">Audit Failed. Network or API error.</div>';
+                container.innerHTML = `<div class="p-4 rounded bg-rose-500/10 text-rose-300 text-xs font-mono">Failed to audit PyPI packages: ${e.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span>Audit PyPI</span>`;
             }
         }
 
-        function escapeHtml(text) {
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        function renderAuditResults(results, summary) {
+            const container = document.getElementById('audit-results-container');
+            const badge = document.getElementById('audit-metrics-badge');
+
+            if (!results || results.length === 0) {
+                container.innerHTML = `<div class="p-6 text-center text-slate-400 text-xs font-mono">No valid package entries parsed from manifest.</div>`;
+                badge.textContent = '0 PACKAGES';
+                return;
+            }
+
+            const slopCount = results.filter(r => r.risk === 'CRITICAL').length;
+            badge.className = slopCount > 0 ? 'badge badge-critical' : 'badge badge-clean';
+            badge.textContent = `${results.length} PACKAGES (${slopCount} HALLUCINATED)`;
+
+            let html = '';
+            results.forEach(r => {
+                const isSlop = r.risk === 'CRITICAL';
+                const statusBadge = isSlop ? 'badge-critical' : 'badge-clean';
+                const statusLabel = isSlop ? 'SLOPSQUATTED / HALLUCINATED' : 'VALID PYPI REGISTRY';
+
+                html += `
+                    <div class="p-3.5 rounded-lg border ${isSlop ? 'border-rose-500/40 bg-rose-500/5' : 'border-slate-800 bg-slate-900/60'} flex items-start justify-between">
+                        <div class="flex-1 mr-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold text-sm font-mono text-white">${escapeHtml(r.package)}</span>
+                                <span class="badge ${statusBadge}">${statusLabel}</span>
+                                ${r.version && r.version !== 'N/A' ? `<span class="font-mono text-[10px] text-slate-400">v${escapeHtml(r.version)}</span>` : ''}
+                            </div>
+                            <p class="text-xs text-slate-300 mt-1 leading-snug">${escapeHtml(r.summary)}</p>
+                        </div>
+                        ${r.url ? `<a href="${r.url}" target="_blank" rel="noopener noreferrer" class="text-xs text-emerald-400 hover:underline font-mono shrink-0" aria-label="Open PyPI page for ${escapeHtml(r.package)}">PyPI Link ↗</a>` : ''}
+                    </div>`;
+            });
+
+            container.innerHTML = html;
+            announceA11y(`Dependency audit finished. ${slopCount} hallucinated packages flagged.`);
         }
 
-        function exportGitHubPR() {
-            const patchContent = `# VibeSafe Autonomous PR Remediation\n\nSecurity compiler verified this patch successfully.`;
-            const blob = new Blob([patchContent], { type: 'text/markdown' });
+        // Load SQLite Audit History
+        async function loadAuditLogs() {
+            const tableBody = document.getElementById('logs-table-body');
+            try {
+                const res = await fetch('/api/logs');
+                const data = await res.json();
+                const logs = data.logs || [];
+
+                if (logs.length === 0) {
+                    tableBody.innerHTML = `<div class="p-8 text-center text-xs text-slate-400 font-mono">No scan history recorded in SQLite yet.</div>`;
+                    return;
+                }
+
+                let html = '';
+                logs.forEach(l => {
+                    const statusClass = (l.status === 'REMEDIATED' || l.status === 'CLEAN') ? 'text-emerald-400' : 'text-rose-400';
+                    const ts = l.timestamp ? new Date(l.timestamp + ' UTC').toLocaleString() : '—';
+                    html += `
+                        <div class="grid grid-cols-12 px-4 py-3 text-xs items-center hover:bg-slate-900/40">
+                            <span class="col-span-4 font-mono font-medium text-white truncate" title="${escapeHtml(l.filename)}">${escapeHtml(l.filename)}</span>
+                            <span class="col-span-3 text-slate-400 font-mono text-[11px]">${escapeHtml(l.scan_type)}</span>
+                            <span class="col-span-2 text-center font-bold ${statusClass}">${l.findings_count}</span>
+                            <span class="col-span-3 text-right font-mono text-[10px] text-slate-400">${escapeHtml(ts)}</span>
+                        </div>`;
+                });
+                tableBody.innerHTML = html;
+            } catch (e) {
+                tableBody.innerHTML = `<div class="p-4 text-center text-xs text-rose-400 font-mono">Failed to query logs: ${e.message}</div>`;
+            }
+        }
+
+        async function clearAuditLogs() {
+            if (!confirm('Clear all audit logs from SQLite?')) return;
+            try {
+                await fetch('/api/logs', { method: 'DELETE' });
+                loadAuditLogs();
+                announceA11y('Audit logs successfully cleared.');
+            } catch (e) {
+                alert('Failed to clear logs.');
+            }
+        }
+
+        function exportMarkdownPatch() {
+            if (!lastPatchedCode) {
+                alert('Execute an Auto-Patch remediation first to generate a patch report.');
+                return;
+            }
+            const dateStr = new Date().toISOString();
+            const mdContent = `# VibeSafe Security Remediation Report
+Generated on: ${dateStr}
+AST Engine Version: 3.9+
+
+## Deterministic Code Patch
+\`\`\`python
+${lastPatchedCode}
+\`\`\`
+
+---
+*Verified by VibeSafe Closed-Loop Security Compiler*`;
+
+            const blob = new Blob([mdContent], { type: 'text/markdown' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url; a.download = 'vibesafe-security-patch.md'; a.click();
-            alert('🎉 VibeSafe PR generated!');
+            a.href = url;
+            a.download = `vibesafe-remediation-${Date.now()}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
         }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // Keyboard Shortcut: Ctrl/Cmd + Enter to trigger scan
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                triggerScan();
+            }
+        });
+
+        // Initialize with default scan on load
+        window.addEventListener('DOMContentLoaded', () => {
+            triggerScan();
+        });
     </script>
 </body>
 </html>

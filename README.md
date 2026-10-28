@@ -226,13 +226,19 @@ Recommended test cases include:
 | Unsuccessful patch                          | Remaining findings or transformation errors are reported      |
 | Repeated analysis                           | Results correspond to the latest input                        |
 
-Run the existing test suite using the test framework configured in the repository. For example, if the project uses `pytest`:
+Run the automated test suite using Python's built-in `unittest` runner:
 
-```
-python3 -m pytest
+```bash
+python3 -m unittest discover -v tests
 ```
 
-Do not interpret this example as proof that the project currently has a passing test suite.
+The test suite contains 27 unit, integration, and end-to-end regression tests covering:
+- AST Scanner detection across all supported CWEs (Command Injection, SQLi, Eval/Exec, Hardcoded Secrets).
+- Clean code reporting zero findings and syntax error recovery.
+- Deterministic patch generation and reverse-line indentation preservation.
+- PyPI dependency auditor parsing, status classification, caching, and network mocking.
+- In-memory upload handling, extension validation, payload limits, and SQLite non-persistence.
+- End-to-end user workflows from upload to auto-patching and telemetry verification.
 
 ---
 
