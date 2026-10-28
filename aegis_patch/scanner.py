@@ -16,7 +16,6 @@ class AegisScanner(ast.NodeVisitor):
         self.vulnerabilities = []
 
     def visit_Call(self, node):
-        # 1. Dangerous Functions (eval, exec)
         if isinstance(node.func, ast.Name):
             if node.func.id in ['eval', 'exec']:
                 self.vulnerabilities.append({
@@ -26,7 +25,6 @@ class AegisScanner(ast.NodeVisitor):
                     'msg': f'Critical: Use of {node.func.id}() allows arbitrary code execution.'
                 })
 
-        # 2. Command Injection (os.system, subprocess.Popen/run with shell=True)
         if isinstance(node.func, ast.Attribute):
             if node.func.attr in ['system', 'popen']:
                 self.vulnerabilities.append({
@@ -39,12 +37,10 @@ class AegisScanner(ast.NodeVisitor):
         self.generic_visit(node)
 
     def visit_Assign(self, node):
-        # 3. Hardcoded Secrets & High Entropy Strings
         if isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
             val = node.value.value
             entropy = calculate_shannon_entropy(val)
-            # High entropy string (> 4.5) with length > 12 usually indicates API keys/tokens
-            if len(val) >= 12 and entropy > 4.2:
+            if len(val) >= 10 and entropy > 3.0:
                 for target in node.targets:
                     var_name = target.id if isinstance(target, ast.Name) else "Secret"
                     self.vulnerabilities.append({
