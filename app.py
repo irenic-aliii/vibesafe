@@ -1,9 +1,9 @@
 import streamlit as st
-from aegis_patch.scanner import scan_code
-from aegis_patch.auditor import audit_requirements_text
-from aegis_patch.patcher import generate_patch, apply_patch
+from vibesafe.scanner import scan_code
+from vibesafe.auditor import audit_requirements_text
+from vibesafe.patcher import generate_patch, apply_patch
 
-st.set_page_config(page_title="AegisPatch - Security Compiler", page_icon="🛡️", layout="wide")
+st.set_page_config(page_title="VibeSafe - Security Compiler", page_icon="🛡️", layout="wide")
 
 # Custom CSS for a sleek dark/security theme
 st.markdown("""
@@ -14,14 +14,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🛡️ AegisPatch: AI Security Compiler")
+st.title("🛡️ VibeSafe: AI Security Compiler")
 st.markdown("### *The deterministic security layer and verification loop for AI-generated code.*")
 
 tab1, tab2 = st.tabs(["⚡ AST Security Scanner & Auto-Patcher", "📦 Slopsquatting Supply-Chain Auditor"])
 
 with tab1:
     st.markdown("### Code Vulnerability Scanner & Verification Loop")
-    st.info("Paste your Python code below. AegisPatch parses the AST, detects critical vulnerabilities, auto-patches them, and re-scans to prove the bug count drops to zero.")
+    st.info("Paste your Python code below. VibeSafe parses the AST, detects critical vulnerabilities, auto-patches them, and re-scans to prove the bug count drops to zero.")
 
     sample_code = """import os
 password = 'supersecretpassword12345'
@@ -87,4 +87,4 @@ with tab2:
                 st.success(f"✅ `{res['package']}`: Valid PyPI package.")
 
 st.markdown("---")
-st.caption("AegisPatch — Built for PromptWars 2026. Deterministic AST Analysis & Live Verification Loop.")
+st.caption("VibeSafe — Built for PromptWars 2026. Deterministic AST Analysis & Live Verification Loop.")

@@ -1,5 +1,5 @@
 """
-AegisPatch AI Patch Agent
+VibeSafe AI Patch Agent
 """
 import os
 
